@@ -63,7 +63,7 @@ public:
 vector<Event> eventQ;
 
 int main(int argc, char *argv[]){
-  inputfile = fopen("lab2_assign/input3","r");
+  inputfile = fopen("input-1-eventQ","r");
   int pid = 0;
   //inputfile = fopen(argv[1],"r");
   //DesLayer deslayer; 
@@ -106,10 +106,8 @@ int main(int argc, char *argv[]){
 
       // Shift elements of arr[0..i-1], that are greater than key,
       // to one position ahead of their current position
-      Event anotherEvent = eventQ[j];
-      int newKey = anotherEvent.get_timestamp();
-      while (j >= 0 && newKey > key) {
-          eventQ[j + 1] = anotherEvent; // Move the element one position to the right
+      while (j >= 0 && eventQ[j].get_timestamp() > key) {
+          eventQ[j + 1] = eventQ[j]; // Move the element one position to the right
           j--;
       }
       eventQ[j + 1] = newEvent; // Place the key in its correct position
