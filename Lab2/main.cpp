@@ -12,6 +12,19 @@ const int BUFFER_SIZE = 4096;
 char buffer[BUFFER_SIZE];
 int AT;
 
+class Process{
+private:
+  int TC;
+  int CB;
+  int IO;
+public:
+  // constructor
+  Process(int TC, int CB, int IO){
+    this->TC = TC;
+    this->CB = CB;
+    this->IO = IO;
+  }
+};
 
 class Event{
 private:
@@ -19,12 +32,13 @@ private:
   string oldstate;
   string newstate;
   int pid;
-  //Process process;
+  Process* process;
 public:
   // constructor
-  Event(int timestamp, int pid){
+  Event(int timestamp, int pid, Process* process){
     this->timestamp = timestamp;
     this->pid = pid;
+    this->process = process;
   }
   // getters
   int get_timestamp() const {return timestamp;}
@@ -57,16 +71,85 @@ public:
     else{
     }
   }
+  void set_eventQ(vector<Event> newEventQ){eventQ = newEventQ;}
 
 };
 
-vector<Event> eventQ;
+
+
+vector<Event> order_eventQ(vector<Event> eventQ){
+  // we do insert sort 
+  int n = eventQ.size();
+  for (int i = 1; i < n; i++) {
+      Event newEvent = eventQ[i]; 
+      int key = newEvent.get_timestamp();
+      int j = i - 1;
+
+      while (j >= 0 && eventQ[j].get_timestamp() > key) {
+          eventQ[j + 1] = eventQ[j]; 
+          j--;
+      }
+      eventQ[j + 1] = newEvent; 
+  }
+  for (Event event : eventQ) {
+    int timestamp = event.get_timestamp();
+    int pid = event.get_pid();
+    cout << "time: " << timestamp << " pid: " << pid << endl;
+  }
+  return eventQ;
+}
+
+void simulation(DesLayer deslayer){
+  Event* event;
+  while ((event = deslayer.get_event())){
+    Process* proc = event->get_process();
+    CURRENT_TIME = event->get_timestamp();
+    int transition = event->get_transition();
+    int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
+    delete event; event = nullptr;
+
+    switch(transition){
+      case TRANS_TO_READY:
+        // must come from BLOCKED or CREATED
+        // add to run queue, no event created
+        CALL_SCHEDULER = true;
+        break;
+      case TRANS_TO_PREEMPT: // similar to TRANS_TO_READY
+        // must come from RUNNING (preemption)
+        // add to runqueue (no event is generated)
+        CALL_SCHEDULER = true;
+        break;
+      case TRANS_TO_RUN:
+        // create event for either preemption or blocking
+        break;
+      case TRANS_TO_BLOCK:
+        //create an event for when process becomes READY again
+        CALL_SCHEDULER = true;
+        break;
+    }
+
+    if (CALL_SCHEDULER) {
+      if (get_next_event_time() == CURRENT_TIME)
+        continue; //process next event from Event queue
+      CALL_SCHEDULER = false;
+      if (CURRENT_RUNNING_PROCESS == nullptr){
+        CURRENT_RUNNING_PROCESS = THE_SCHEDULER->get_next_process();
+        if (CURRENT_RUNNING_PROCESS == nullptr){
+          continue;
+        }
+        // create event to make this process runnable for same time.`
+      }
+    }
+
+  }
+};
 
 int main(int argc, char *argv[]){
-  inputfile = fopen("input-1-eventQ","r");
+  //inputfile = fopen("input-1-eventQ","r");
   int pid = 0;
-  //inputfile = fopen(argv[1],"r");
-  //DesLayer deslayer; 
+  inputfile = fopen(argv[1],"r");
+  DesLayer deslayer; 
+  vector<Event> eventQ;
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -89,33 +172,14 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Event event = Event(AT, pid);
+    Process* process = new Process(TC, CB, IO);  
+    Event event = Event(AT, pid, process);
     eventQ.push_back(event);
     newProcess=true; 
-    pid++;  
-        
+    pid++;    
   }
-
-  // we do insert sort 
-  int n = eventQ.size();
-  // Traverse through the array
-  for (int i = 1; i < n; i++) {
-      Event newEvent = eventQ[i]; // Current element to be inserted
-      int key = newEvent.get_timestamp();
-      int j = i - 1;
-
-      // Shift elements of arr[0..i-1], that are greater than key,
-      // to one position ahead of their current position
-      while (j >= 0 && eventQ[j].get_timestamp() > key) {
-          eventQ[j + 1] = eventQ[j]; // Move the element one position to the right
-          j--;
-      }
-      eventQ[j + 1] = newEvent; // Place the key in its correct position
-  }
-  for (Event event : eventQ) {
-    int timestamp = event.get_timestamp();
-    int pid = event.get_pid();
-    cout << "time: " << timestamp << " pid: " << pid << endl;
-  }
+  vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
+  deslayer.set_eventQ(orderedEventQ);
+  simulation(deslayer);
   return 0;
 }
