@@ -12,6 +12,8 @@ const int BUFFER_SIZE = 4096;
 char buffer[BUFFER_SIZE];
 int AT;
 
+typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
+
 class Process{
 private:
   int TC;
@@ -33,22 +35,27 @@ private:
   string newstate;
   int pid;
   Process* process;
+  process_state_t transition; 
 public:
   // constructor
-  Event(int timestamp, int pid, Process* process){
+  Event(int timestamp, int pid, Process* process, process_state_t transition){
     this->timestamp = timestamp;
     this->pid = pid;
     this->process = process;
+    this->transition = transition;
   }
   // getters
   int get_timestamp() const {return timestamp;}
   int get_pid() const {return pid;}
   string get_oldstate() const { return oldstate; }
-  string get_newstate() const { return newstate; }  
+  string get_newstate() const { return newstate; } 
+  Process* get_process() const {return process;} 
+  process_state_t get_transition() const {return transition;}
   // setters 
   void set_timestamp(int newTimestamp){timestamp=newTimestamp;}
   void set_oldstate(string newOldstate){oldstate=newOldstate;}
   void set_newstate(string newNewstate){newstate=newNewstate;}
+  void set_transition(process_state_t newTransition){transition=newTransition;}
 };
 
 class DesLayer{
@@ -56,10 +63,12 @@ private:
   vector<Event> eventQ;
 public:
   // getters
-  Event get_event(){
-    if (eventQ.empty()) {} //TODO
+  Event* get_event(){
+    if (eventQ.empty()) {
+      return nullptr;
+    }
     else {
-      Event event = eventQ[0];
+      Event* event = &eventQ.front();
       eventQ.erase(eventQ.begin());
       return event;
     }
@@ -68,11 +77,23 @@ public:
   // setters
   void put_event(Event newEvent){
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
-    else{
+    else{ // we know the current eventQ is ordered from smaller to largest according to policy
+      int n = eventQ.size();
+      int key = newEvent.get_timestamp();
+      int j = n; // i = n+1, j=i-1=n
+
+      while (j >= 0 && eventQ[j].get_timestamp() > key) {
+          eventQ[j + 1] = eventQ[j]; 
+          j--;
+      }
+      eventQ[j + 1] = newEvent; 
     }
   }
   void set_eventQ(vector<Event> newEventQ){eventQ = newEventQ;}
-
+  int get_next_event_time(){
+    if (eventQ.empty()){return -1;}
+    else{return eventQ.front().get_timestamp();}
+  }
 };
 
 
@@ -99,42 +120,53 @@ vector<Event> order_eventQ(vector<Event> eventQ){
   return eventQ;
 }
 
-void simulation(DesLayer deslayer){
-  Event* event;
-  while ((event = deslayer.get_event())){
+
+class Scheduler{
+public:
+  Scheduler();
+  void get_next_process();
+};
+
+void simulation(DesLayer deslayer, Scheduler* scheduler){
+  Event* event = deslayer.get_event();
+  int CURRENT_TIME;
+  bool CALL_SCHEDULER;
+  while (event){
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
     int transition = event->get_transition();
-    int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
+    //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
     delete event; event = nullptr;
+    Process* current_running_process;
 
     switch(transition){
-      case TRANS_TO_READY:
+      case STATE_READY: // TRANS_TO_READY
         // must come from BLOCKED or CREATED
         // add to run queue, no event created
         CALL_SCHEDULER = true;
         break;
-      case TRANS_TO_PREEMPT: // similar to TRANS_TO_READY
+      case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
         CALL_SCHEDULER = true;
         break;
-      case TRANS_TO_RUN:
+      case STATE_RUNNING:
         // create event for either preemption or blocking
+        current_running_process = proc;
         break;
-      case TRANS_TO_BLOCK:
+      case STATE_BLOCKED:
         //create an event for when process becomes READY again
         CALL_SCHEDULER = true;
         break;
     }
 
     if (CALL_SCHEDULER) {
-      if (get_next_event_time() == CURRENT_TIME)
+      if (deslayer.get_next_event_time() == CURRENT_TIME)
         continue; //process next event from Event queue
       CALL_SCHEDULER = false;
-      if (CURRENT_RUNNING_PROCESS == nullptr){
-        CURRENT_RUNNING_PROCESS = THE_SCHEDULER->get_next_process();
-        if (CURRENT_RUNNING_PROCESS == nullptr){
+      if (current_running_process == nullptr){
+        //current_running_process = scheduler->get_next_process();
+        if (current_running_process == nullptr){
           continue;
         }
         // create event to make this process runnable for same time.`
@@ -143,6 +175,8 @@ void simulation(DesLayer deslayer){
 
   }
 };
+
+
 
 int main(int argc, char *argv[]){
   //inputfile = fopen("input-1-eventQ","r");
@@ -172,14 +206,16 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(TC, CB, IO);  
-    Event event = Event(AT, pid, process);
+    Process* process = new Process(TC, CB, IO); 
+    process_state_t transition = STATE_READY;
+    Event event = Event(AT, pid, process, transition);
     eventQ.push_back(event);
     newProcess=true; 
     pid++;    
   }
   vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
   deslayer.set_eventQ(orderedEventQ);
-  simulation(deslayer);
+  //Scheduler* scheduler; // TO DO
+  //simulation(deslayer, scheduler);
   return 0;
 }
