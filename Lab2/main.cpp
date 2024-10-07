@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
-#include <vector>
+#include <list>
 
 using namespace std;
 
@@ -60,15 +60,17 @@ public:
 
 class DesLayer{
 private:
-  vector<Event> eventQ;
+  list<Event> eventQ;
 public:
   // getters
-  Event* get_event(){
+  Event get_event(){
     if (eventQ.empty()) {
-      return nullptr;
+      Process* dummyProc = Process();
+      Event dummyEvent = new Event(-1, 0, dummyProc, );
+      return ; //TO DO return an empty event with timestamp -1 
     }
     else {
-      Event* event = &eventQ.front();
+      Event event = eventQ.front();
       eventQ.erase(eventQ.begin());
       return event;
     }
@@ -78,18 +80,19 @@ public:
   void put_event(Event newEvent){
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // we know the current eventQ is ordered from smaller to largest according to policy
-      int n = eventQ.size();
       int key = newEvent.get_timestamp();
-      int j = n; // i = n+1, j=i-1=n
-
-      while (j >= 0 && eventQ[j].get_timestamp() > key) {
-          eventQ[j + 1] = eventQ[j]; 
-          j--;
+      auto it = eventQ.begin();
+      for (const Event& event : eventQ){
+        if (event.get_timestamp()<key){
+          eventQ.insert(it, newEvent);
+        }
+        advance(it, 1);
       }
-      eventQ[j + 1] = newEvent; 
     }
   }
-  void set_eventQ(vector<Event> newEventQ){eventQ = newEventQ;}
+
+  void set_eventQ(list<Event> newEventQ){eventQ = newEventQ;}
+  
   int get_next_event_time(){
     if (eventQ.empty()){return -1;}
     else{return eventQ.front().get_timestamp();}
@@ -213,8 +216,8 @@ int main(int argc, char *argv[]){
     newProcess=true; 
     pid++;    
   }
-  vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
-  deslayer.set_eventQ(orderedEventQ);
+  //vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
+  //deslayer.set_eventQ(orderedEventQ);
   //Scheduler* scheduler; // TO DO
   //simulation(deslayer, scheduler);
   return 0;
