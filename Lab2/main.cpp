@@ -33,23 +33,24 @@ private:
   int timestamp; 
   string oldstate;
   string newstate;
-  int pid;
-  Process* process;
+  //int pid;
+  //Process* process;
+  int process;
   process_state_t transition; 
 public:
   // constructor
-  Event(int timestamp, int pid, Process* process, process_state_t transition){
+  Event(int timestamp, int process, process_state_t transition){
     this->timestamp = timestamp;
-    this->pid = pid;
     this->process = process;
     this->transition = transition;
   }
   // getters
   int get_timestamp() const {return timestamp;}
-  int get_pid() const {return pid;}
+  //int get_pid() const {return pid;}
   string get_oldstate() const { return oldstate; }
   string get_newstate() const { return newstate; } 
-  Process* get_process() const {return process;} 
+  //Process* get_process() const {return process;}
+  int get_process() const {return process;} 
   process_state_t get_transition() const {return transition;}
   // setters 
   void set_timestamp(int newTimestamp){timestamp=newTimestamp;}
@@ -60,32 +61,34 @@ public:
 
 class DesLayer{
 private:
-  list<Event> eventQ;
+  list<Event*> eventQ;
 public:
   // getters
   Event get_event(){
     if (eventQ.empty()) {
-      Process* dummyProc = new Process(0,0,0);
+      //Process* dummyProc = new Process(0,0,0);
       process_state_t transition = STATE_READY;
-      Event dummyEvent = Event(-1, 0, dummyProc, transition);
+      Event dummyEvent = Event(-1, 1, transition);
       return dummyEvent; //TO DO return an empty event with timestamp -1 
     }
     else {
-      Event event = eventQ.front();
+      Event* event = eventQ.front();
       eventQ.erase(eventQ.begin());
-      return event;
+      return *event;
     }
   }
-  //vector<Event> get_eventQ() const {return eventQ;}
   // setters
-  void put_event(Event newEvent){
+  void put_event(int AT, int TC, int CB, int IO, int pid){
+    //Process* process = new Process(TC, CB, IO); 
+    process_state_t transition = STATE_READY;
+    Event* newEvent = new Event(AT, pid, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // we know the current eventQ is ordered from smaller to largest according to policy
       int eventQsize = eventQ.size();
-      int key = newEvent.get_timestamp();
+      int key = newEvent->get_timestamp();
       auto it = eventQ.begin();
-      for (const Event& event : eventQ){
-        if (event.get_timestamp()>key){
+      for (const Event* event : eventQ){
+        if (event->get_timestamp()>key){
           eventQ.insert(it, newEvent);
           break;
         }
@@ -101,15 +104,19 @@ public:
   
   int get_next_event_time(){
     if (eventQ.empty()){return -1;}
-    else{return eventQ.front().get_timestamp();}
+    else{return eventQ.front()->get_timestamp();}
   }
 
   void print_eventQ(){
-    for (Event event : eventQ) {
-    int timestamp = event.get_timestamp();
-    int pid = event.get_pid();
-    cout << "time: " << timestamp << " pid: " << pid << endl;
-  }
+    Event event = get_event();
+    // Assuming get_event() is a function that gets an event from the queue or source.
+    while (event.get_timestamp() > -1) {
+      int timestamp = event.get_timestamp();
+      //int pid = event.get_process();
+      // int pid = event.get_pid(); // You can uncomment this if you need to print pid.
+      //cout << "time: " << timestamp << " pid: " << pid << endl;
+      event = get_event();
+    }
   }
 };
 
@@ -125,7 +132,8 @@ void simulation(DesLayer deslayer, Scheduler* scheduler){
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
   while (event.get_timestamp() > -1){
-    Process* proc = event.get_process();
+    //Process* proc = event.get_process();
+    int proc = event.get_process();
     CURRENT_TIME = event.get_timestamp();
     int transition = event.get_transition();
     //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
@@ -145,7 +153,7 @@ void simulation(DesLayer deslayer, Scheduler* scheduler){
         break;
       case STATE_RUNNING:
         // create event for either preemption or blocking
-        current_running_process = proc;
+        //current_running_process = proc;
         break;
       case STATE_BLOCKED:
         //create an event for when process becomes READY again
@@ -199,10 +207,8 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(TC, CB, IO); 
-    process_state_t transition = STATE_READY;
-    Event event = Event(AT, pid, process, transition);
-    deslayer.put_event(event);
+    
+    deslayer.put_event(AT, TC, CB, IO, pid);
     newProcess=true; 
     pid++;    
   }
