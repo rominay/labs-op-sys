@@ -34,12 +34,12 @@ private:
   string oldstate;
   string newstate;
   //int pid;
-  //Process* process;
-  int process;
+  Process* process;
+  //int process;
   process_state_t transition; 
 public:
   // constructor
-  Event(int timestamp, int process, process_state_t transition){
+  Event(int timestamp, Process* process, process_state_t transition){
     this->timestamp = timestamp;
     this->process = process;
     this->transition = transition;
@@ -49,8 +49,8 @@ public:
   //int get_pid() const {return pid;}
   string get_oldstate() const { return oldstate; }
   string get_newstate() const { return newstate; } 
-  //Process* get_process() const {return process;}
-  int get_process() const {return process;} 
+  Process* get_process() const {return process;}
+  //int get_process() const {return process;} 
   process_state_t get_transition() const {return transition;}
   // setters 
   void set_timestamp(int newTimestamp){timestamp=newTimestamp;}
@@ -66,9 +66,9 @@ public:
   // getters
   Event get_event(){
     if (eventQ.empty()) {
-      //Process* dummyProc = new Process(0,0,0);
+      Process* dummyProc = new Process(0,0,0);
       process_state_t transition = STATE_READY;
-      Event dummyEvent = Event(-1, 1, transition);
+      Event dummyEvent = Event(-1, dummyProc, transition);
       return dummyEvent; //TO DO return an empty event with timestamp -1 
     }
     else {
@@ -79,9 +79,9 @@ public:
   }
   // setters
   void put_event(int AT, int TC, int CB, int IO, int pid){
-    //Process* process = new Process(TC, CB, IO); 
+    Process* process = new Process(TC, CB, IO); 
     process_state_t transition = STATE_READY;
-    Event* newEvent = new Event(AT, pid, transition);
+    Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // we know the current eventQ is ordered from smaller to largest according to policy
       int eventQsize = eventQ.size();
@@ -132,8 +132,7 @@ void simulation(DesLayer deslayer, Scheduler* scheduler){
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
   while (event.get_timestamp() > -1){
-    //Process* proc = event.get_process();
-    int proc = event.get_process();
+    Process* proc = event.get_process();
     CURRENT_TIME = event.get_timestamp();
     int transition = event.get_transition();
     //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
