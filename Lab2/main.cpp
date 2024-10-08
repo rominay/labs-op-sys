@@ -78,7 +78,7 @@ public:
     }
   }
   // setters
-  void put_event(int AT, int TC, int CB, int IO, int pid){
+  void put_event(int AT, int TC, int CB, int IO){
     Process* process = new Process(TC, CB, IO); 
     process_state_t transition = STATE_READY;
     Event* newEvent = new Event(AT, process, transition);
@@ -107,27 +107,27 @@ public:
     else{return eventQ.front()->get_timestamp();}
   }
 
-  void print_eventQ(){
-    Event event = get_event();
-    // Assuming get_event() is a function that gets an event from the queue or source.
-    while (event.get_timestamp() > -1) {
-      int timestamp = event.get_timestamp();
-      //int pid = event.get_process();
-      // int pid = event.get_pid(); // You can uncomment this if you need to print pid.
-      //cout << "time: " << timestamp << " pid: " << pid << endl;
-      event = get_event();
-    }
+  
+};
+
+
+class BaseScheduler{
+public:
+  BaseScheduler();
+  virtual Process* get_next_process();
+  virtual void add_process();
+};
+
+class FIFOScheduler  : public BaseScheduler{
+public:
+  Process* get_next_process() override {
+    
   }
 };
 
+DesLayer deslayer;
 
-class Scheduler{
-public:
-  Scheduler();
-  void get_next_process();
-};
-
-void simulation(DesLayer deslayer, Scheduler* scheduler){
+void simulation(){
   Event event = deslayer.get_event();
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
@@ -177,13 +177,12 @@ void simulation(DesLayer deslayer, Scheduler* scheduler){
 };
 
 
+ 
 
 int main(int argc, char *argv[]){
   //inputfile = fopen("input-1-eventQ","r");
-  int pid = 0;
+  //int pid = 0;
   inputfile = fopen(argv[1],"r");
-  DesLayer deslayer; 
-  //vector<Event> eventQ;
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -207,14 +206,19 @@ int main(int argc, char *argv[]){
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
     
-    deslayer.put_event(AT, TC, CB, IO, pid);
+    deslayer.put_event(AT, TC, CB, IO);
     newProcess=true; 
-    pid++;    
+    //pid++;    
   }
-  deslayer.print_eventQ();
-  //vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
-  //deslayer.set_eventQ(orderedEventQ);
+  // comment out below if you want to print the eventQ
+  //Event event = deslayer.get_event();
+  // Assuming get_event() is a function that gets an event from the queue or source.
+  //while (event.get_timestamp() > -1) {
+    //int timestamp = event.get_timestamp();
+    //int pid = event.get_process();
+    //cout << "time: " << timestamp << " pid: " << pid << endl;
+    //event = get_event();
   //Scheduler* scheduler; // TO DO
-  //simulation(deslayer, scheduler);
+  simulation();
   return 0;
 }
