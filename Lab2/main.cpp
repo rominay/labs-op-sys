@@ -75,7 +75,7 @@ public:
       return event;
     }
   }
-  vector<Event> get_eventQ() const {return eventQ;}
+  //vector<Event> get_eventQ() const {return eventQ;}
   // setters
   void put_event(Event newEvent){
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
