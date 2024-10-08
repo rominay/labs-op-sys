@@ -65,9 +65,10 @@ public:
   // getters
   Event get_event(){
     if (eventQ.empty()) {
-      Process* dummyProc = Process();
-      Event dummyEvent = new Event(-1, 0, dummyProc, );
-      return ; //TO DO return an empty event with timestamp -1 
+      Process* dummyProc = new Process(0,0,0);
+      process_state_t transition = STATE_READY;
+      Event dummyEvent = Event(-1, 0, dummyProc, transition);
+      return dummyEvent; //TO DO return an empty event with timestamp -1 
     }
     else {
       Event event = eventQ.front();
@@ -80,48 +81,37 @@ public:
   void put_event(Event newEvent){
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // we know the current eventQ is ordered from smaller to largest according to policy
+      int eventQsize = eventQ.size();
       int key = newEvent.get_timestamp();
       auto it = eventQ.begin();
       for (const Event& event : eventQ){
-        if (event.get_timestamp()<key){
+        if (event.get_timestamp()>key){
           eventQ.insert(it, newEvent);
+          break;
         }
         advance(it, 1);
+      }
+      if (eventQ.size()==eventQsize){ // means we did not add it
+        eventQ.push_back(newEvent);
       }
     }
   }
 
-  void set_eventQ(list<Event> newEventQ){eventQ = newEventQ;}
+  //void set_eventQ(list<Event> newEventQ){eventQ = newEventQ;}
   
   int get_next_event_time(){
     if (eventQ.empty()){return -1;}
     else{return eventQ.front().get_timestamp();}
   }
-};
 
-
-
-vector<Event> order_eventQ(vector<Event> eventQ){
-  // we do insert sort 
-  int n = eventQ.size();
-  for (int i = 1; i < n; i++) {
-      Event newEvent = eventQ[i]; 
-      int key = newEvent.get_timestamp();
-      int j = i - 1;
-
-      while (j >= 0 && eventQ[j].get_timestamp() > key) {
-          eventQ[j + 1] = eventQ[j]; 
-          j--;
-      }
-      eventQ[j + 1] = newEvent; 
-  }
-  for (Event event : eventQ) {
+  void print_eventQ(){
+    for (Event event : eventQ) {
     int timestamp = event.get_timestamp();
     int pid = event.get_pid();
     cout << "time: " << timestamp << " pid: " << pid << endl;
   }
-  return eventQ;
-}
+  }
+};
 
 
 class Scheduler{
@@ -131,15 +121,15 @@ public:
 };
 
 void simulation(DesLayer deslayer, Scheduler* scheduler){
-  Event* event = deslayer.get_event();
+  Event event = deslayer.get_event();
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
-  while (event){
-    Process* proc = event->get_process();
-    CURRENT_TIME = event->get_timestamp();
-    int transition = event->get_transition();
+  while (event.get_timestamp() > -1){
+    Process* proc = event.get_process();
+    CURRENT_TIME = event.get_timestamp();
+    int transition = event.get_transition();
     //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
-    delete event; event = nullptr;
+    //delete event; event = nullptr;
     Process* current_running_process;
 
     switch(transition){
@@ -186,7 +176,7 @@ int main(int argc, char *argv[]){
   int pid = 0;
   inputfile = fopen(argv[1],"r");
   DesLayer deslayer; 
-  vector<Event> eventQ;
+  //vector<Event> eventQ;
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -212,10 +202,11 @@ int main(int argc, char *argv[]){
     Process* process = new Process(TC, CB, IO); 
     process_state_t transition = STATE_READY;
     Event event = Event(AT, pid, process, transition);
-    eventQ.push_back(event);
+    deslayer.put_event(event);
     newProcess=true; 
     pid++;    
   }
+  deslayer.print_eventQ();
   //vector<Event> orderedEventQ = order_eventQ(eventQ); // we get the ordered list of events 
   //deslayer.set_eventQ(orderedEventQ);
   //Scheduler* scheduler; // TO DO
