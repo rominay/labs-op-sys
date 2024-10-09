@@ -66,25 +66,16 @@ private:
   list<Event*> eventQ;
 public:
   // getters
-  Event get_event(){
-    if (eventQ.empty()) {
-      Process* dummyProc = new Process(0,0,0);
-      process_state_t transition = STATE_READY;
-      Event dummyEvent = Event(-1, dummyProc, transition);
-      return dummyEvent;
-    }
+  Event* get_event(){
+    if (eventQ.empty()) {return NULL;}
     else {
-      Event* ev = eventQ.front();
-      Event event = *ev; 
-      eventQ.pop_front();  // Remove the first event from the queue
-      delete ev; 
-      return event;
+      Event* ev = eventQ.front(); 
+      eventQ.pop_front();  // Remove the first event from the queue 
+      return ev;
     }
   }
   // setters
-  void put_event(int AT, int TC, int CB, int IO){
-    Process* process = new Process(TC, CB, IO); 
-    process_state_t transition = STATE_READY;
+  void put_event(int AT, Process* process, process_state_t transition){
     Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // insert in the correct position
@@ -138,13 +129,13 @@ public:
 DesLayer deslayer;
 
 void simulation(){
-  Event event = deslayer.get_event();
+  Event* event = deslayer.get_event();
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
-  while (event.get_timestamp() > -1){
-    Process* proc = event.get_process();
-    CURRENT_TIME = event.get_timestamp();
-    int transition = event.get_transition();
+  while (event){
+    Process* proc = event->get_process();
+    CURRENT_TIME = event->get_timestamp();
+    int transition = event->get_transition();
     //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
     //delete event; event = nullptr;
     Process* current_running_process;
@@ -215,52 +206,65 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    
-    deslayer.put_event(AT, TC, CB, IO);
+    Process* process = new Process(TC, CB, IO); 
+    process_state_t transition = STATE_READY;
+    deslayer.put_event(AT, process, transition);
     newProcess=true; 
     //pid++;    
   }
   // comment out below if you want to print the eventQ
-  Event event = deslayer.get_event();
+  Event* event = deslayer.get_event();
   // Assuming get_event() is a function that gets an event from the queue or source.
-  while (event.get_timestamp() > -1) {
-    int timestamp = event.get_timestamp();
+  while (event) {
+    int timestamp = event->get_timestamp();
     //int pid = event.get_process();
     cout << "time: " << timestamp << endl; //" pid: " << pid << endl;
     event = deslayer.get_event();
   }
   // another thing to try could be 
-  deslayer.put_event(100, 0, 0, 0);
-  deslayer.put_event(100, 1, 0, 0);
-  deslayer.put_event(10, 2, 0, 0);
-  deslayer.put_event(1, 3, 0, 0);
-  deslayer.put_event(20, 4, 0, 0);
-  deslayer.put_event(20, 5, 0, 0);
+  int CB=0;
+  int IO=0;
+  process_state_t transition = STATE_READY;
+  Process* process = new Process(0, CB, IO);
+  deslayer.put_event(100, process ,transition);
+  process = new Process(1, CB, IO);
+  deslayer.put_event(100, process ,transition);
+  process = new Process(2, CB, IO);
+  deslayer.put_event(10, process ,transition);
+  process = new Process(3, CB, IO);
+  deslayer.put_event(1, process ,transition);
+  process = new Process(4, CB, IO);
+  deslayer.put_event(20, process ,transition);
+  process = new Process(5, CB, IO);
+  deslayer.put_event(20, process ,transition);
 
   event = deslayer.get_event();
-  while (event.get_timestamp() > -1) {
-    int timestamp = event.get_timestamp();
+  while (event) {
+    int timestamp = event->get_timestamp();
     //int pid = event.get_process();
-    cout << "time: " << timestamp << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    cout << "time: " << timestamp << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
     event = deslayer.get_event();
   }
   // another thing to try could be 
   cout << "----" << endl;
-  deslayer.put_event(100, 0, 0, 0);
+  process = new Process(1, CB, IO);
+  deslayer.put_event(100, process ,transition);
   event = deslayer.get_event();
-  while (event.get_timestamp() > -1) {
-    cout << "time: " << event.get_timestamp() << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  while (event) {
+    cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
     event = deslayer.get_event();
   }
-  deslayer.put_event(100, 1, 0, 0);
-  deslayer.put_event(10, 2, 0, 0);
+  process = new Process(2, CB, IO);
+  deslayer.put_event(5, process ,transition);
+  process = new Process(3, CB, IO);
+  deslayer.put_event(7, process ,transition);
   event = deslayer.get_event();
-  while (event.get_timestamp() > -1) {
+  while (event) {
 
-    cout << "time: " << event.get_timestamp() << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
     event = deslayer.get_event();
   }
-  deslayer.put_event(10, 2, 0, 0);
+
 
   //FIFOScheduler *scheduler = new FIFOScheduler();
   //simulation();
