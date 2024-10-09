@@ -3,6 +3,7 @@
 #include <sstream>
 #include <cstring>
 #include <list>
+#include <queue>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ public:
     this->CB = CB;
     this->IO = IO;
   }
+  int get_TC() const {return TC;}
 };
 
 class Event{
@@ -69,12 +71,14 @@ public:
       Process* dummyProc = new Process(0,0,0);
       process_state_t transition = STATE_READY;
       Event dummyEvent = Event(-1, dummyProc, transition);
-      return dummyEvent; //TO DO return an empty event with timestamp -1 
+      return dummyEvent;
     }
     else {
-      Event* event = eventQ.front();
-      eventQ.erase(eventQ.begin());
-      return *event;
+      Event* ev = eventQ.front();
+      Event event = *ev; 
+      eventQ.pop_front();  // Remove the first event from the queue
+      delete ev; 
+      return event;
     }
   }
   // setters
@@ -83,24 +87,15 @@ public:
     process_state_t transition = STATE_READY;
     Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
-    else{ // we know the current eventQ is ordered from smaller to largest according to policy
-      int eventQsize = eventQ.size();
-      int key = newEvent->get_timestamp();
+    else{ // insert in the correct position
       auto it = eventQ.begin();
-      for (const Event* event : eventQ){
-        if (event->get_timestamp()>key){
-          eventQ.insert(it, newEvent);
-          break;
-        }
-        advance(it, 1);
+      while (it != eventQ.end() && (*it)->get_timestamp() <= newEvent->get_timestamp()) {
+          ++it;  // Find the correct position
       }
-      if (eventQ.size()==eventQsize){ // means we did not add it
-        eventQ.push_back(newEvent);
-      }
+      eventQ.insert(it, newEvent); 
     }
   }
 
-  //void set_eventQ(list<Event> newEventQ){eventQ = newEventQ;}
   
   int get_next_event_time(){
     if (eventQ.empty()){return -1;}
@@ -111,18 +106,33 @@ public:
 };
 
 
-class BaseScheduler{
+// Base class for scheduling
+class BaseScheduler {
 public:
-  BaseScheduler();
-  virtual Process* get_next_process();
-  virtual void add_process();
+    virtual Process* get_next_process() = 0;
+    virtual void add_process(Process* p) = 0; 
+    virtual ~BaseScheduler() {} // virtual destructor 
 };
 
-class FIFOScheduler  : public BaseScheduler{
+// FIFO Scheduler 
+class FIFOScheduler : public BaseScheduler {
+private:
+    queue<Process*> processQueue; 
+
 public:
-  Process* get_next_process() override {
-    
-  }
+    Process* get_next_process() override {
+        if (processQueue.empty()) {
+            cout << "No processes in the queue." << endl;
+            return nullptr; 
+        }
+        Process* nextProcess = processQueue.front();  
+        processQueue.pop();                          
+        return nextProcess;
+    }
+
+    void add_process(Process* p) override {
+        processQueue.push(p); 
+    }
 };
 
 DesLayer deslayer;
@@ -180,9 +190,9 @@ void simulation(){
  
 
 int main(int argc, char *argv[]){
-  //inputfile = fopen("input-1-eventQ","r");
+  inputfile = fopen("input-1-eventQ","r");
   //int pid = 0;
-  inputfile = fopen(argv[1],"r");
+  //inputfile = fopen(argv[1],"r");
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -211,14 +221,48 @@ int main(int argc, char *argv[]){
     //pid++;    
   }
   // comment out below if you want to print the eventQ
-  //Event event = deslayer.get_event();
+  Event event = deslayer.get_event();
   // Assuming get_event() is a function that gets an event from the queue or source.
-  //while (event.get_timestamp() > -1) {
-    //int timestamp = event.get_timestamp();
+  while (event.get_timestamp() > -1) {
+    int timestamp = event.get_timestamp();
     //int pid = event.get_process();
-    //cout << "time: " << timestamp << " pid: " << pid << endl;
-    //event = get_event();
-  //Scheduler* scheduler; // TO DO
-  simulation();
+    cout << "time: " << timestamp << endl; //" pid: " << pid << endl;
+    event = deslayer.get_event();
+  }
+  // another thing to try could be 
+  deslayer.put_event(100, 0, 0, 0);
+  deslayer.put_event(100, 1, 0, 0);
+  deslayer.put_event(10, 2, 0, 0);
+  deslayer.put_event(1, 3, 0, 0);
+  deslayer.put_event(20, 4, 0, 0);
+  deslayer.put_event(20, 5, 0, 0);
+
+  event = deslayer.get_event();
+  while (event.get_timestamp() > -1) {
+    int timestamp = event.get_timestamp();
+    //int pid = event.get_process();
+    cout << "time: " << timestamp << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    event = deslayer.get_event();
+  }
+  // another thing to try could be 
+  cout << "----" << endl;
+  deslayer.put_event(100, 0, 0, 0);
+  event = deslayer.get_event();
+  while (event.get_timestamp() > -1) {
+    cout << "time: " << event.get_timestamp() << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    event = deslayer.get_event();
+  }
+  deslayer.put_event(100, 1, 0, 0);
+  deslayer.put_event(10, 2, 0, 0);
+  event = deslayer.get_event();
+  while (event.get_timestamp() > -1) {
+
+    cout << "time: " << event.get_timestamp() << " id: " << event.get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    event = deslayer.get_event();
+  }
+  deslayer.put_event(10, 2, 0, 0);
+
+  //FIFOScheduler *scheduler = new FIFOScheduler();
+  //simulation();
   return 0;
 }
