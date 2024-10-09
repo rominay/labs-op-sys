@@ -182,7 +182,7 @@ void simulation(){
 
 int main(int argc, char *argv[]){
   inputfile = fopen("input-1-eventQ","r");
-  //int pid = 0;
+  int pid = 0;
   //inputfile = fopen(argv[1],"r");
   while (1){   
     while (newProcess){ 
@@ -206,21 +206,23 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(TC, CB, IO); 
+    Process* process = new Process(pid, CB, IO); 
     process_state_t transition = STATE_READY;
     deslayer.put_event(AT, process, transition);
     newProcess=true; 
-    //pid++;    
+    pid++;    
   }
+  
   // comment out below if you want to print the eventQ
   Event* event = deslayer.get_event();
   // Assuming get_event() is a function that gets an event from the queue or source.
   while (event) {
     int timestamp = event->get_timestamp();
     //int pid = event.get_process();
-    cout << "time: " << timestamp << endl; //" pid: " << pid << endl;
+    cout << "time: " << timestamp << " id: " << event->get_process()->get_TC() << endl; 
     event = deslayer.get_event();
   }
+  printf("----------we add manually\n");
   // another thing to try could be 
   int CB=0;
   int IO=0;
@@ -246,24 +248,31 @@ int main(int argc, char *argv[]){
     event = deslayer.get_event();
   }
   // another thing to try could be 
-  cout << "----" << endl;
+  cout << "----we add and take" << endl;
   process = new Process(1, CB, IO);
   deslayer.put_event(100, process ,transition);
   event = deslayer.get_event();
-  while (event) {
-    cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
-    event = deslayer.get_event();
-  }
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
   process = new Process(2, CB, IO);
   deslayer.put_event(5, process ,transition);
   process = new Process(3, CB, IO);
-  deslayer.put_event(7, process ,transition);
+  deslayer.put_event(4, process ,transition);
+ 
   event = deslayer.get_event();
-  while (event) {
-
-    cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
-    event = deslayer.get_event();
-  }
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
+  process = new Process(4, CB, IO);
+  deslayer.put_event(3, process ,transition);
+  process = new Process(5, CB, IO);
+  deslayer.put_event(3, process ,transition);
+  
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
+  if (event == NULL) cout << "null" <<endl;
 
 
   //FIFOScheduler *scheduler = new FIFOScheduler();
