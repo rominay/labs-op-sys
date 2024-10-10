@@ -56,6 +56,7 @@ public:
   int get_IT() const { return IT; }
   int get_PRIO() const { return PRIO; }
   int get_CW() const { return CW; }
+  // add setters
 };
 
 list <Process*> processes;
@@ -137,13 +138,13 @@ public:
     //virtual bool test_preempt(Process* activated_process);
 };
 BaseScheduler *scheduler;
-// FIFO Scheduler 
-class FIFOScheduler : public BaseScheduler {
+// FCFS Scheduler 
+class FSFSScheduler : public BaseScheduler {
 private:
     queue<Process*> runQueue; 
 
 public:
-    string get_type() override {return "FIFO";}
+    string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
             cout << "No processes in the queue." << endl;
@@ -200,6 +201,7 @@ void simulation(){
 					//proc->set_CB_reamain_time(proc->get_CB_reamain_time()-1);
         process_state_t transition = STATE_DONE;
         int burst= myrandom(proc->get_CB());
+        //proc->set_CP
 				deslayer.put_event(CURRENT_TIME+burst, proc, transition);
 				//}
         }
@@ -282,8 +284,7 @@ int main(int argc, char *argv[]){
     deslayer.put_event(AT, process, transition);
     newProcess=true;   
   }
-  string scheduleType = "FIFO";
-  scheduler = new FIFOScheduler();
+  scheduler = new FSFSScheduler();
   //quantum = 100000;
   simulation();
   /*
