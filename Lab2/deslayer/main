@@ -8,18 +8,10 @@
 using namespace std;
 
 FILE *inputfile;
-FILE *randfile;
 bool newProcess = true;
 const int BUFFER_SIZE = 4096;
 char buffer[BUFFER_SIZE];
-int ofs = 0;
-vector<int> randvals;
-int quantum;
-int totalCPU = 0;
-int totalTT = 0;
-int totalCW = 0;
-int totalIO = 0;
-
+int AT;
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
@@ -36,11 +28,7 @@ public:
     this->IO = IO;
   }
   int get_TC() const {return TC;}
-  int get_CB() const {return CB;}
-  int get_IO() const {return IO;}
 };
-
-list <Process*> processes;
 
 class Event{
 private:
@@ -112,60 +100,50 @@ public:
 // Base class for scheduling
 class BaseScheduler {
 public:
-    virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
-    virtual string get_type() = 0;
-    //virtual bool test_preempt(Process* activated_process);
+    virtual ~BaseScheduler() {} // virtual destructor 
 };
-BaseScheduler *scheduler;
+
 // FIFO Scheduler 
 class FIFOScheduler : public BaseScheduler {
 private:
-    queue<Process*> runQueue; 
+    queue<Process*> processQueue; 
 
 public:
-    string get_type() override {return "FIFO";}
     Process* get_next_process() override {
-        if (runQueue.empty()) {
+        if (processQueue.empty()) {
             cout << "No processes in the queue." << endl;
-            return NULL; 
+            return nullptr; 
         }
-        Process* nextProcess = runQueue.front();  
-        runQueue.pop();                          
+        Process* nextProcess = processQueue.front();  
+        processQueue.pop();                          
         return nextProcess;
     }
 
     void add_process(Process* p) override {
-        runQueue.push(p); 
+        processQueue.push(p); 
     }
 };
 
-int myrandom(int burst) {
-	if (ofs == randvals.size()){ofs = 0;}
-  else{ofs++;}
-	return 1 + (randvals[ofs] % burst);
-}
-
 DesLayer deslayer;
-Process* current_running_process;
 
 void simulation(){
-  Event* event;
+  Event* event = deslayer.get_event();
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
-  while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
+  while (event){
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
     int transition = event->get_transition();
-    //int timeInPrevState =  CURRENT_TIME - proc->state_ts; TO DO
-    delete event; event = nullptr;
+    //int timeInPrevState =  CURRENT_TIME - proc->state_ts; 
+    //delete event; event = nullptr;
+    Process* current_running_process;
 
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
         // must come from BLOCKED or CREATED
         // add to run queue, no event created
-        scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         break;
       case STATE_PREEMPT: // similar to TRANS_TO_READY
@@ -188,14 +166,11 @@ void simulation(){
         continue; //process next event from Event queue
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
-        current_running_process = scheduler->get_next_process();
+        //current_running_process = scheduler->get_next_process();
         if (current_running_process == nullptr){
           continue;
         }
-        // create event to make this process runnable for same time
-        process_state_t transition = STATE_READY;
-				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
-				current_running_process = NULL;
+        // create event to make this process runnable for same time.`
       }
     }
 
@@ -206,21 +181,9 @@ void simulation(){
  
 
 int main(int argc, char *argv[]){
-  /*
-  * Open file with random numbers
-  */
-  ifstream randfile("lab2_assign/rfile");
-	string rs;
-	while(randfile>>rs){
-		randvals.push_back(atoi(rs.c_str()));
-	}
-  /*
-  * Open input file
-  */
-  inputfile = fopen("lab2_assign/input1","r");
+  inputfile = fopen("input-1-eventQ","r");
+  int pid = 0;
   //inputfile = fopen(argv[1],"r");
-
-  int AT;
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -243,30 +206,76 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(TC, CB, IO); 
-    processes.push_back(process);
+    Process* process = new Process(pid, CB, IO); 
     process_state_t transition = STATE_READY;
     deslayer.put_event(AT, process, transition);
-    newProcess=true;   
+    newProcess=true; 
+    pid++;    
   }
-  string scheduleType = "FIFO";
-  scheduler = new FIFOScheduler();
-  //quantum = 100000;
-  simulation();
-  /*
-  * Output
-  */
-  cout<<scheduler->get_type()<<endl;
+  
+  // comment out below if you want to print the eventQ
+  Event* event = deslayer.get_event();
+  // Assuming get_event() is a function that gets an event from the queue or source.
+  while (event) {
+    int timestamp = event->get_timestamp();
+    //int pid = event.get_process();
+    cout << "time: " << timestamp << " id: " << event->get_process()->get_TC() << endl; 
+    event = deslayer.get_event();
+  }
+  printf("----------we add manually\n");
+  // another thing to try could be 
+  int CB=0;
+  int IO=0;
+  process_state_t transition = STATE_READY;
+  Process* process = new Process(0, CB, IO);
+  deslayer.put_event(100, process ,transition);
+  process = new Process(1, CB, IO);
+  deslayer.put_event(100, process ,transition);
+  process = new Process(2, CB, IO);
+  deslayer.put_event(10, process ,transition);
+  process = new Process(3, CB, IO);
+  deslayer.put_event(1, process ,transition);
+  process = new Process(4, CB, IO);
+  deslayer.put_event(20, process ,transition);
+  process = new Process(5, CB, IO);
+  deslayer.put_event(20, process ,transition);
 
-  int index=0;
-	for(auto proc : processes){
-		totalCPU += proc->get_TC();
-		totalTT += proc.TT;
-		totalCW += proc.CW;
-		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
-			index,proc.getAT(),proc.getTC(),proc.getCB(),proc.getIO(),
-			proc.static_priority,proc.FT, proc.TT,proc.IT,proc.CW);
-    index++;
-	}
+  event = deslayer.get_event();
+  while (event) {
+    int timestamp = event->get_timestamp();
+    //int pid = event.get_process();
+    cout << "time: " << timestamp << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+    event = deslayer.get_event();
+  }
+  // another thing to try could be 
+  cout << "----we add and take" << endl;
+  process = new Process(1, CB, IO);
+  deslayer.put_event(100, process ,transition);
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
+  process = new Process(2, CB, IO);
+  deslayer.put_event(5, process ,transition);
+  process = new Process(3, CB, IO);
+  deslayer.put_event(4, process ,transition);
+ 
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
+  process = new Process(4, CB, IO);
+  deslayer.put_event(3, process ,transition);
+  process = new Process(5, CB, IO);
+  deslayer.put_event(3, process ,transition);
+  
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  event = deslayer.get_event();
+  cout << "time: " << event->get_timestamp() << " id: " << event->get_process()->get_TC() << endl; //" pid: " << pid << endl;
+  
+  if (event == NULL) cout << "null" <<endl;
+
+
+  //FIFOScheduler *scheduler = new FIFOScheduler();
+  //simulation();
   return 0;
 }
