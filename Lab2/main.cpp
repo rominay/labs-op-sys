@@ -19,12 +19,18 @@ int totalCPU = 0;
 int totalTT = 0;
 int totalCW = 0;
 int totalIO = 0;
-
+int maxprio;
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
+int myrandom(int burst) {
+	if (ofs == randvals.size()){ofs = 0;}
+  else{ofs++;}
+	return 1 + (randvals[ofs] % burst);
+}
+
 class Process{
-private:
+public:
   int AT; // arrival time
   int TC; // total CPU time
   int CB; // CPU Burst 
@@ -32,9 +38,10 @@ private:
   int FT; //finishing time
   int TT; // turnaround 
   int IT; // I/O time 
-  int PRIO; // static priority
+  int static_priority; // static priority
   int CW; // CPU waiting time
-public:
+  int CPU_time; 
+  int remaining_CPU_burst;
   // constructor
   Process(int AT, int TC, int CB, int IO){
     this->AT = AT;
@@ -44,8 +51,9 @@ public:
     FT = 0;
 		TT = 0;
 		IT = 0;
-    PRIO = 0; // TO DO
+    static_priority = myrandom(maxprio);
 		CW = 0;
+    CPU_time=0;
   }
   int get_AT() const {return AT;}
   int get_TC() const {return TC;}
@@ -54,9 +62,12 @@ public:
   int get_FT() const { return FT; }
   int get_TT() const { return TT; }
   int get_IT() const { return IT; }
-  int get_PRIO() const { return PRIO; }
+  int get_static_priority() const { return static_priority; }
   int get_CW() const { return CW; }
+  int get_remaining_CPU_burst() const {return remaining_CPU_burst;}
   // add setters
+  //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
+  void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
 };
 
 list <Process*> processes;
@@ -160,11 +171,7 @@ public:
     }
 };
 
-int myrandom(int burst) {
-	if (ofs == randvals.size()){ofs = 0;}
-  else{ofs++;}
-	return 1 + (randvals[ofs] % burst);
-}
+
 
 DesLayer deslayer;
 Process* current_running_process;
@@ -190,19 +197,45 @@ void simulation(){
       case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
+        scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         break;
       case STATE_RUNNING:
         {
         // create event for either preemption or blocking
         //current_running_process = proc;
-        //if((proc->get_CPU_time() + burst) >= proc->get_TC()){
-					//proc->set_CPU_time(proc->get_CPU_time()+burst);
-					//proc->set_CB_reamain_time(proc->get_CB_reamain_time()-1);
-        process_state_t transition = STATE_DONE;
-        int burst= myrandom(proc->get_CB());
-        //proc->set_CP
-				deslayer.put_event(CURRENT_TIME+burst, proc, transition);
+        int time_to_run;
+        int time_remaining_to_run = proc->get_remaining_CPU_burst();
+        if (time_remaining_to_run > 0){ // it means we did not exhaust previous CPU burst
+          time_to_run = time_remaining_to_run;
+        }
+        else{ // we get a new CPU bust 
+          int CPU_burst= myrandom(proc->get_CB());
+          // the CPU_time of a process is the total time it used CPU 
+          int remaining_CPU_time = proc->get_TC() - (*proc).CPU_time;
+          if (remaining_CPU_time < CPU_burst){//if the remaining time is less than the CPU_burst , we run for the remaining time
+            time_to_run = remaining_CPU_time;
+          }
+          else {// we run for the CPU_burst
+            time_to_run = CPU_burst;
+          }
+        }
+        if (time_to_run > quantum){ // we will not finish 
+          (*proc).CPU_time += time_to_run;
+          proc->set_remaining_CPU_burst(time_to_run-quantum);
+          process_state_t transition = STATE_PREEMPT;
+          deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
+        }
+        else{ // it goes to I/O
+          (*proc).CPU_time += time_to_run;
+          if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
+            process_state_t transition = STATE_BLOCKED; 
+          }
+          else{ // we are done 
+            process_state_t transition = STATE_DONE; 
+          }
+          deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
+        }
 				//}
         }
         break;
@@ -240,6 +273,10 @@ void simulation(){
  
 
 int main(int argc, char *argv[]){
+  /*
+  * Pass parameters
+  */
+  maxprio = 4; 
   /*
   * Open file with random numbers
   */
@@ -299,7 +336,7 @@ int main(int argc, char *argv[]){
 		totalCW += proc->get_CW();
 		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
 			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),
-			proc->get_PRIO(),proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
+			proc->get_static_priority(),proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
     index++;
 	}
   return 0;
