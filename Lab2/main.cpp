@@ -175,7 +175,7 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    int transition = event->get_transition();
+    process_state_t transition = event->get_transition();
     //int timeInPrevState =  CURRENT_TIME - proc->state_ts; TO DO
     delete event; event = nullptr;
 
@@ -192,26 +192,40 @@ void simulation(){
         CALL_SCHEDULER = true;
         break;
       case STATE_RUNNING:
+        {
         // create event for either preemption or blocking
         //current_running_process = proc;
+        //if((proc->get_CPU_time() + burst) >= proc->get_TC()){
+					//proc->set_CPU_time(proc->get_CPU_time()+burst);
+					//proc->set_CB_reamain_time(proc->get_CB_reamain_time()-1);
+        process_state_t transition = STATE_DONE;
+        int burst= myrandom(proc->get_CB());
+				deslayer.put_event(CURRENT_TIME+burst, proc, transition);
+				//}
+        }
         break;
       case STATE_BLOCKED:
         //create an event for when process becomes READY again
         CALL_SCHEDULER = true;
         break;
+      case STATE_DONE:
+        current_running_process = NULL;
     }
 
     if (CALL_SCHEDULER) {
-      if (deslayer.get_next_event_time() == CURRENT_TIME)
-        continue; //process next event from Event queue
+      if (deslayer.get_next_event_time() == CURRENT_TIME){
+        event = deslayer.get_event();
+        continue; 
+      }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
         if (current_running_process == nullptr){
+          event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
-        process_state_t transition = STATE_READY;
+        process_state_t transition = STATE_RUNNING;
 				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
 				current_running_process = NULL;
       }
@@ -235,7 +249,7 @@ int main(int argc, char *argv[]){
   /*
   * Open input file
   */
-  inputfile = fopen("lab2_assign/input1","r");
+  inputfile = fopen("input0","r");
   //inputfile = fopen(argv[1],"r");
 
   int AT;
