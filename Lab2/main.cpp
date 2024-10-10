@@ -25,19 +25,37 @@ typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DO
 
 class Process{
 private:
-  int TC;
-  int CB;
-  int IO;
+  int AT; // arrival time
+  int TC; // total CPU time
+  int CB; // CPU Burst 
+  int IO; // IO Burst
+  int FT; //finishing time
+  int TT; // turnaround 
+  int IT; // I/O time 
+  int PRIO; // static priority
+  int CW; // CPU waiting time
 public:
   // constructor
-  Process(int TC, int CB, int IO){
+  Process(int AT, int TC, int CB, int IO){
+    this->AT = AT;
     this->TC = TC;
     this->CB = CB;
     this->IO = IO;
+    FT = 0;
+		TT = 0;
+		IT = 0;
+    PRIO = 0; // TO DO
+		CW = 0;
   }
+  int get_AT() const {return AT;}
   int get_TC() const {return TC;}
   int get_CB() const {return CB;}
   int get_IO() const {return IO;}
+  int get_FT() const { return FT; }
+  int get_TT() const { return TT; }
+  int get_IT() const { return IT; }
+  int get_PRIO() const { return PRIO; }
+  int get_CW() const { return CW; }
 };
 
 list <Process*> processes;
@@ -243,7 +261,8 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(TC, CB, IO); 
+    Process* process = new Process(AT, TC, CB, IO); 
+    //process -> static_prio = myrandom( maxprio );
     processes.push_back(process);
     process_state_t transition = STATE_READY;
     deslayer.put_event(AT, process, transition);
@@ -261,11 +280,11 @@ int main(int argc, char *argv[]){
   int index=0;
 	for(auto proc : processes){
 		totalCPU += proc->get_TC();
-		totalTT += proc.TT;
-		totalCW += proc.CW;
+		totalTT += proc->get_TT();
+		totalCW += proc->get_CW();
 		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
-			index,proc.getAT(),proc.getTC(),proc.getCB(),proc.getIO(),
-			proc.static_priority,proc.FT, proc.TT,proc.IT,proc.CW);
+			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),
+			proc->get_PRIO(),proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
     index++;
 	}
   return 0;
