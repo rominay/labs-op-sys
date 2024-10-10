@@ -35,6 +35,7 @@ public:
   int TC; // total CPU time
   int CB; // CPU Burst 
   int IO; // IO Burst
+
   int FT; //finishing time
   int TT; // turnaround 
   int IT; // I/O time 
@@ -54,6 +55,7 @@ public:
     static_priority = myrandom(maxprio);
 		CW = 0;
     CPU_time=0;
+    remaining_CPU_burst=0;
   }
   int get_AT() const {return AT;}
   int get_TC() const {return TC;}
@@ -142,6 +144,7 @@ public:
 // Base class for scheduling
 class BaseScheduler {
 public:
+    int quantum;
     virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
@@ -228,11 +231,12 @@ void simulation(){
         }
         else{ // it goes to I/O
           (*proc).CPU_time += time_to_run;
+          process_state_t transition;
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
-            process_state_t transition = STATE_BLOCKED; 
+            transition = STATE_BLOCKED; 
           }
           else{ // we are done 
-            process_state_t transition = STATE_DONE; 
+            transition = STATE_DONE; 
           }
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
@@ -241,6 +245,10 @@ void simulation(){
         break;
       case STATE_BLOCKED:
         //create an event for when process becomes READY again
+        int IO_burst= myrandom(proc->get_IO());
+        (*proc).IT += IO_burst;
+        process_state_t transition = STATE_READY;
+        deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
         break;
       case STATE_DONE:
@@ -322,7 +330,9 @@ int main(int argc, char *argv[]){
     newProcess=true;   
   }
   scheduler = new FSFSScheduler();
-  //quantum = 100000;
+  if (scheduler->get_type() == "FCFS"){
+    quantum = 10000;
+  }
   simulation();
   /*
   * Output
