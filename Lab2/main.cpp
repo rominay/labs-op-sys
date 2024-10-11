@@ -70,6 +70,7 @@ public:
   // add setters
   //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
+  void set_FT(int new_FT) { FT=new_FT; }
 };
 
 list <Process*> processes;
@@ -161,7 +162,7 @@ public:
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
-            cout << "No processes in the queue." << endl;
+            //cout << "No processes in the queue." << endl;
             return NULL; 
         }
         Process* nextProcess = runQueue.front();  
@@ -237,6 +238,7 @@ void simulation(){
           }
           else{ // we are done 
             transition = STATE_DONE; 
+            proc->set_FT(CURRENT_TIME+time_to_run);
           }
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
@@ -259,14 +261,14 @@ void simulation(){
 
     if (CALL_SCHEDULER) {
       if (deslayer.get_next_event_time() == CURRENT_TIME){
-        event = deslayer.get_event();
+        //event = deslayer.get_event();
         continue; 
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
         if (current_running_process == nullptr){
-          event = deslayer.get_event();
+          //event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
@@ -298,6 +300,7 @@ int main(int argc, char *argv[]){
   /*
   * Open input file
   */
+  //inputfile = fopen("input0","r");
   inputfile = fopen("lab2_assign/input0","r");
   //inputfile = fopen(argv[1],"r");
 
@@ -347,8 +350,9 @@ int main(int argc, char *argv[]){
 		totalTT += proc->get_TT();
 		totalCW += proc->get_CW();
 		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
-			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),
-			proc->get_static_priority(),proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
+			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),proc->get_static_priority(),
+      // the calculated stats
+      proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
     index++;
 	}
   return 0;
