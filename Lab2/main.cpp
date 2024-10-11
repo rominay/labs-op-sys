@@ -244,6 +244,7 @@ void simulation(){
         }
         break;
       case STATE_BLOCKED:
+        {
         //create an event for when process becomes READY again
         int IO_burst= myrandom(proc->get_IO());
         (*proc).IT += IO_burst;
@@ -251,6 +252,7 @@ void simulation(){
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
         break;
+        }
       case STATE_DONE:
         current_running_process = NULL;
     }
@@ -296,7 +298,7 @@ int main(int argc, char *argv[]){
   /*
   * Open input file
   */
-  inputfile = fopen("input0","r");
+  inputfile = fopen("lab2_assign/input0","r");
   //inputfile = fopen(argv[1],"r");
 
   int AT;
