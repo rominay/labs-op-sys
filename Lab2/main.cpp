@@ -62,7 +62,7 @@ public:
   int get_CB() const {return CB;}
   int get_IO() const {return IO;}
   int get_FT() const { return FT; }
-  int get_TT() const { return TT; }
+  int get_TT() const { return FT - AT; }
   int get_IT() const { return IT; }
   int get_static_priority() const { return static_priority; }
   int get_CW() const { return CW; }
