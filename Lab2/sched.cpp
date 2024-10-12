@@ -25,6 +25,7 @@ int totalCW = 0;
 int totalIO = 0;
 int maxprio;
 int last_event_FT;
+int totalIOTime = 0; 
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
@@ -241,6 +242,9 @@ void simulation(){
   Event* event;
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
+  int activeIOCount = 0;  
+  int lastIOTransitionTime = 0;
+  
   
   //print_eventQ();
 
@@ -325,7 +329,13 @@ void simulation(){
           (*proc).CPU_time += time_to_run;
           process_state_t transition;
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
-            transition = STATE_BLOCKED; 
+            transition = STATE_BLOCKED;
+
+            if (activeIOCount == 0) {  // no active IOs
+                lastIOTransitionTime = CURRENT_TIME+time_to_run;  // it is now
+            }
+            activeIOCount++;  // it comes into IO state
+            
           }
           else{ // we are done 
             transition = STATE_DONE; 
@@ -333,10 +343,10 @@ void simulation(){
           }
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
-				//}
-        }
         proc->old_state="RUNNG";
         break;
+        }
+        
       case STATE_BLOCKED:
         {
         //create an event for when process becomes READY again
@@ -351,8 +361,15 @@ void simulation(){
         CALL_SCHEDULER = true;
         current_running_process = nullptr;
         proc->old_state="BLOCK";
+        
+        
+        activeIOCount--;  // process comes out
+        if (activeIOCount == 0) {  
+          totalIOTime += (CURRENT_TIME+IO_burst - lastIOTransitionTime); 
+        }
         break;
         }
+
       case STATE_DONE:
         if (verbose) {
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
@@ -496,8 +513,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  //ifstream randfile("lab2_assign/rfile");
-  ifstream randfile(rand_file);
+  ifstream randfile("lab2_assign/rfile");
+  //ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -506,8 +523,8 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input3","r");
-  inputfile = fopen(input_file,"r");
+  inputfile = fopen("lab2_assign/input3","r");
+  //inputfile = fopen(input_file,"r");
 
   int AT;
   int pid=0;
@@ -543,12 +560,12 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new FCFSScheduler();
-  //if (scheduler->get_type() == "FCFS"){
-  //  quantum = 10000;
-  //  maxprio=4;
-  //  verbose=true;
-  //}
+  scheduler = new FCFSScheduler();
+  if (scheduler->get_type() == "FCFS"){
+    quantum = 10000;
+    maxprio=4;
+    verbose=true;
+  }
   simulation();
   /*
   * Output
@@ -562,7 +579,7 @@ int main(int argc, char *argv[]){
 		totalCPU += proc->get_TC();
 		totalTT += proc->get_TT();
 		totalCW += proc->get_CW();
-    totalIO += proc->get_IT();
+    //totalIO += proc->get_IT();
 		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
 			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),proc->get_static_priority(),
       // the calculated stats
@@ -574,7 +591,7 @@ int main(int argc, char *argv[]){
   */
   //printf(last_event_FT);
   double utilization_CPU = 100.0*(totalCPU/(double)last_event_FT);
-	double utilization_IO = 100.0*((totalIO)/(double)last_event_FT);
+	double utilization_IO = 100.0*((totalIOTime)/(double)last_event_FT);
 
 	printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n",
 		last_event_FT, utilization_CPU, utilization_IO, 
