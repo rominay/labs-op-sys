@@ -24,6 +24,7 @@ int totalTT = 0;
 int totalCW = 0;
 int totalIO = 0;
 int maxprio;
+int last_event_FT;
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
@@ -275,6 +276,7 @@ void simulation(){
         break;
         }
       case STATE_DONE:
+        last_event_FT = CURRENT_TIME;
         current_running_process = NULL;
     }
 
@@ -317,6 +319,7 @@ bool parse_schedspec(const std::string& spec) {
     if (spec == "F") {
       scheduler = new FCFSScheduler();
       quantum = 10000;
+      maxprio = 4; 
       return true;
     }
     if (spec == "L") {
@@ -373,8 +376,6 @@ int main(int argc, char *argv[]){
   /*
   * Pass parameters
   */
-  maxprio = 4; 
-
   int opt;
   string schedspec; // Variable to store the scheduling specification
 
@@ -464,17 +465,31 @@ int main(int argc, char *argv[]){
   * Output
   */
   cout<<scheduler->get_type()<<endl;
-
+  /*
+  * For each process 
+  */
   int index=0;
 	for(auto proc : processes){
 		totalCPU += proc->get_TC();
 		totalTT += proc->get_TT();
 		totalCW += proc->get_CW();
+    totalIO += proc->get_IT();
 		printf("%04d: %4d %4d %4d %4d %1d | %5d %5d %5d %5d\n",
 			index,proc->get_AT(),proc->get_TC(),proc->get_CB(),proc->get_IO(),proc->get_static_priority(),
       // the calculated stats
       proc->get_FT(), proc->get_TT(),proc->get_IT(),proc->get_CW());
     index++;
 	}
+  /*
+  * Summary information
+  */
+  double utilization_CPU = 100.0*totalCPU/(double)last_event_FT;
+	double utilization_IO = 100.0*totalIO/(double)last_event_FT;
+
+	printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n",
+		last_event_FT, utilization_CPU, utilization_IO, 
+		(totalTT/(double)processes.size()), (totalCW/(double)processes.size()), 
+		(processes.size()*100/(double)last_event_FT)); 	
+
   return 0;
 }
