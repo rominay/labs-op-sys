@@ -51,12 +51,15 @@ public:
   int remaining_CPU_burst;
   int state_ts; // this is the time at which it was put to ready 
   int time_prev_state; // the amount of time in previous state
+  int pid; // identifier
+  string old_state="CREATED";
   // constructor
-  Process(int AT, int TC, int CB, int IO){
+  Process(int AT, int TC, int CB, int IO, int pid){
     this->AT = AT;
     this->TC = TC;
     this->CB = CB;
     this->IO = IO;
+    this->pid=pid;
     FT = 0;
 		TT = 0;
 		IT = 0;
@@ -65,8 +68,8 @@ public:
 		CW = 0;
     CPU_time=0;
     remaining_CPU_burst=0;
-    state_ts=0;
-    time_prev_state=0; 
+    state_ts=-1; // we initialize with -1 to indicate that it has not experienced any transition
+    time_prev_state=-1; // we initialize with -1 to indicate that it has not experienced any transition
   }
   int get_AT() const {return AT;}
   int get_TC() const {return TC;}
@@ -201,9 +204,17 @@ void simulation(){
   bool CALL_SCHEDULER;
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
+    if (proc->pid==1){
+      printf("here");
+    }
     CURRENT_TIME = event->get_timestamp();
     process_state_t transition = event->get_transition();
-    int timeInPrevState =  CURRENT_TIME - proc->state_ts;
+    int timeInPrevState;
+    if (proc->state_ts==-1) {timeInPrevState=0;}
+    else{
+      timeInPrevState =  CURRENT_TIME - proc->state_ts;
+    }
+    proc->state_ts=CURRENT_TIME;
     proc->set_time_prev_state(timeInPrevState);
     delete event; event = nullptr;
 
@@ -211,30 +222,38 @@ void simulation(){
       case STATE_READY: // TRANS_TO_READY
         // must come from BLOCKED or CREATED
         // add to run queue, no event created
-        proc->state_ts=CURRENT_TIME;
+        
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
+        if (verbose) {
+					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
+				}
+        proc->old_state="READY";
         break;
       case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
+        {
         proc->dynamic_priority-=1;
-        if (proc->dynamic_priority==-1) proc->static_priority-1; // TO DO: check if this is correct
+        if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
+        proc->old_state="PREEMPT";
         break;
+        }
       case STATE_RUNNING:
         {
+        int CPU_burst;
         // create event for either preemption or blocking
         //current_running_process = proc;
-        proc->CW+=proc->time_prev_state;
+        proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
         if (time_remaining_to_run > 0){ // it means we did not exhaust previous CPU burst
           time_to_run = time_remaining_to_run;
         }
         else{ // we get a new CPU bust 
-          int CPU_burst= myrandom(proc->get_CB());
+          CPU_burst= myrandom(proc->get_CB());
           // the CPU_time of a process is the total time it used CPU 
           int remaining_CPU_time = proc->get_TC() - (*proc).CPU_time;
           if (remaining_CPU_time < CPU_burst){//if the remaining time is less than the CPU_burst , we run for the remaining time
@@ -244,8 +263,14 @@ void simulation(){
             time_to_run = CPU_burst;
           }
         }
+
+        if (verbose) {
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"RUNNG";
+					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
+				}
+
         if (time_to_run > quantum){ // we will not finish 
-          (*proc).CPU_time += time_to_run;
+          (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
           process_state_t transition = STATE_PREEMPT;
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
@@ -264,20 +289,31 @@ void simulation(){
         }
 				//}
         }
+        proc->old_state="RUNNG";
         break;
       case STATE_BLOCKED:
         {
         //create an event for when process becomes READY again
         int IO_burst= myrandom(proc->get_IO());
+        if (verbose) {
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"BLOCK";
+					cout <<" ib="<< IO_burst <<" rem="<<proc->TC-proc->CPU_time <<endl;
+				}
+
         (*proc).IT += IO_burst;
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
+        proc->old_state="BLOCK";
         break;
         }
       case STATE_DONE:
+        if (verbose) {
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
+				}
         last_event_FT = CURRENT_TIME;
         current_running_process = NULL;
+        proc->old_state="DONE";
     }
 
     if (CALL_SCHEDULER) {
@@ -395,7 +431,8 @@ int main(int argc, char *argv[]){
       }
   }
   //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  parse_schedspec(schedspec);
+  //parse_schedspec(schedspec);
+  parse_schedspec("F");
   // Ensure that the required input and random files are provided
   if (optind + 2 > argc) {
       std::cerr << "Error: Missing inputfile or randfile.\n";
@@ -421,10 +458,11 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input2","r");
+  //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
 
   int AT;
+  int pid=0;
   while (1){   
     while (newProcess){ 
         fgets(buffer, BUFFER_SIZE, inputfile);
@@ -447,11 +485,12 @@ int main(int argc, char *argv[]){
 
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
-    Process* process = new Process(AT, TC, CB, IO); 
+    Process* process = new Process(AT, TC, CB, IO, pid); 
     processes.push_back(process);
     process_state_t transition = STATE_READY;
     deslayer.put_event(AT, process, transition);
-    newProcess=true;   
+    newProcess=true; 
+    pid++;  
   }
   /*
   * Logic for the quantum
@@ -459,6 +498,8 @@ int main(int argc, char *argv[]){
   //scheduler = new FCFSScheduler();
   //if (scheduler->get_type() == "FCFS"){
   //  quantum = 10000;
+  //  maxprio=4;
+  //  verbose=true;
   //}
   simulation();
   /*
@@ -483,13 +524,13 @@ int main(int argc, char *argv[]){
   /*
   * Summary information
   */
-  double utilization_CPU = 100.0*totalCPU/(double)last_event_FT;
-	double utilization_IO = 100.0*totalIO/(double)last_event_FT;
+  double utilization_CPU = 100.0*(totalCPU/(double)last_event_FT);
+	double utilization_IO = 100.0*(totalIO/(double)last_event_FT);
 
 	printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n",
 		last_event_FT, utilization_CPU, utilization_IO, 
 		(totalTT/(double)processes.size()), (totalCW/(double)processes.size()), 
-		(processes.size()*100/(double)last_event_FT)); 	
+		(processes.size()*(100/(double)last_event_FT))); 	
 
   return 0;
 }
