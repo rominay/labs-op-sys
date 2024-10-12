@@ -28,6 +28,17 @@ int last_event_FT;
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
+const char* stateToString(process_state_t state) {
+    switch (state) {
+        case STATE_READY:    return "READY";
+        case STATE_RUNNING:  return "RUNNG";
+        case STATE_BLOCKED:  return "BLOCK";
+        case STATE_PREEMPT:  return "STATE_PREEMPT";
+        case STATE_DONE:     return "DONE";
+        default:             return "Unknown State";
+    }
+}
+
 int myrandom(int burst) {
 	if (ofs == randvals.size()){ofs = 0;}
   else{ofs++;}
@@ -124,10 +135,13 @@ public:
   void set_transition(process_state_t newTransition){transition=newTransition;}
 };
 
+list<Event*> a_list;
+
 class DesLayer{
 private:
-  list<Event*> eventQ;
+  //list<Event*> eventQ;
 public:
+  list<Event*> eventQ;
   // getters
   Event* get_event(){
     if (eventQ.empty()) {return NULL;}
@@ -139,6 +153,7 @@ public:
   }
   // setters
   void put_event(int AT, Process* process, process_state_t transition){
+    //cout << "AddEvent(" << AT << ":" << process->pid << ":" << stateToString(transition)  << ")" << endl; // to comment
     Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // insert in the correct position
@@ -163,6 +178,7 @@ public:
 // Base class for scheduling
 class BaseScheduler {
 public:
+    queue<Process*> runQueue;
     int quantum;
     virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
@@ -174,9 +190,10 @@ BaseScheduler *scheduler;
 // FCFS Scheduler 
 class FCFSScheduler : public BaseScheduler {
 private:
-    queue<Process*> runQueue; 
+    //queue<Process*> runQueue; 
 
 public:
+    //queue<Process*> runQueue;
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
@@ -198,15 +215,41 @@ public:
 DesLayer deslayer;
 Process* current_running_process;
 
+
+void print_scheduler(){
+// show scheduler 
+  cout <<  "SCHED ";
+  queue <Process*> q = scheduler->runQueue; 
+  while (!q.empty()) {
+    Process* front = q.front();
+    cout << front->pid  << ":" << front->AT << " ";
+    q.pop(); // Remove the element from the queue
+  }
+  cout << endl;
+};
+
+void print_eventQ(){
+  // show event Q
+  cout << "EventQ "; 
+  for (auto ev : deslayer.eventQ){
+    Process* proc = ev->get_process();
+    cout << ev->get_timestamp() << ":" << proc->pid << " ";
+  }
+  cout << endl;
+};
 void simulation(){
   Event* event;
   int CURRENT_TIME;
   bool CALL_SCHEDULER;
+  
+  //print_eventQ();
+
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
-    if (proc->pid==1){
-      printf("here");
-    }
+    //if (CURRENT_TIME==21){
+    //  printf("here");
+    //}
+    //a_list = deslayer.eventQ;
     CURRENT_TIME = event->get_timestamp();
     process_state_t transition = event->get_transition();
     int timeInPrevState;
@@ -222,13 +265,14 @@ void simulation(){
       case STATE_READY: // TRANS_TO_READY
         // must come from BLOCKED or CREATED
         // add to run queue, no event created
-        
+        //proc->AT=CURRENT_TIME; // we modify the arriving time
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         if (verbose) {
 					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
 				}
         proc->old_state="READY";
+        //print_scheduler();
         break;
       case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
@@ -236,7 +280,9 @@ void simulation(){
         {
         proc->dynamic_priority-=1;
         if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
+        //proc->AT=CURRENT_TIME; // we modify the arriving time
         scheduler->add_process(proc);
+        //print_scheduler();
         CALL_SCHEDULER = true;
         proc->old_state="PREEMPT";
         break;
@@ -245,7 +291,7 @@ void simulation(){
         {
         int CPU_burst;
         // create event for either preemption or blocking
-        //current_running_process = proc;
+        current_running_process = proc;
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
@@ -299,11 +345,11 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"BLOCK";
 					cout <<" ib="<< IO_burst <<" rem="<<proc->TC-proc->CPU_time <<endl;
 				}
-
         (*proc).IT += IO_burst;
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
+        current_running_process = nullptr;
         proc->old_state="BLOCK";
         break;
         }
@@ -312,11 +358,13 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
 				}
         last_event_FT = CURRENT_TIME;
-        current_running_process = NULL;
+        current_running_process = nullptr;
         proc->old_state="DONE";
+        CALL_SCHEDULER=true;
     }
 
     if (CALL_SCHEDULER) {
+      
       if (deslayer.get_next_event_time() == CURRENT_TIME){
         //event = deslayer.get_event();
         continue; 
@@ -324,6 +372,7 @@ void simulation(){
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
+        //print_scheduler();
         if (current_running_process == nullptr){
           //event = deslayer.get_event();
           continue;
@@ -331,10 +380,9 @@ void simulation(){
         // create event to make this process runnable for same time
         process_state_t transition = STATE_RUNNING;
 				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
-				current_running_process = NULL;
+				current_running_process = nullptr;
       }
     }
-
   }
 };
 
@@ -458,7 +506,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input0","r");
+  //inputfile = fopen("lab2_assign/input3","r");
   inputfile = fopen(input_file,"r");
 
   int AT;
@@ -524,8 +572,9 @@ int main(int argc, char *argv[]){
   /*
   * Summary information
   */
+  //printf(last_event_FT);
   double utilization_CPU = 100.0*(totalCPU/(double)last_event_FT);
-	double utilization_IO = 100.0*(totalIO/(double)last_event_FT);
+	double utilization_IO = 100.0*((totalIO)/(double)last_event_FT);
 
 	printf("SUM: %d %.2lf %.2lf %.2lf %.2lf %.3lf\n",
 		last_event_FT, utilization_CPU, utilization_IO, 
