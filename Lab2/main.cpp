@@ -43,6 +43,8 @@ public:
   int CW; // CPU waiting time
   int CPU_time; 
   int remaining_CPU_burst;
+  int state_ts; // this is the time at which it was put to ready 
+  int time_prev_state; // the amount of time in previous state
   // constructor
   Process(int AT, int TC, int CB, int IO){
     this->AT = AT;
@@ -56,6 +58,8 @@ public:
 		CW = 0;
     CPU_time=0;
     remaining_CPU_burst=0;
+    state_ts=0;
+    time_prev_state=0; 
   }
   int get_AT() const {return AT;}
   int get_TC() const {return TC;}
@@ -67,10 +71,14 @@ public:
   int get_static_priority() const { return static_priority; }
   int get_CW() const { return CW; }
   int get_remaining_CPU_burst() const {return remaining_CPU_burst;}
+  int get_state_ts() const {return state_ts;}
+  int get_time_prev_state() const {return time_prev_state;}
   // add setters
   //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
   void set_FT(int new_FT) { FT=new_FT; }
+  void set_state_ts(int new_state_ts) {state_ts=new_state_ts;}
+  void set_time_prev_state(int new_time_prev_state) {time_prev_state=new_time_prev_state;}
 };
 
 list <Process*> processes;
@@ -188,13 +196,15 @@ void simulation(){
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
     process_state_t transition = event->get_transition();
-    //int timeInPrevState =  CURRENT_TIME - proc->state_ts; TO DO
+    int timeInPrevState =  CURRENT_TIME - proc->state_ts;
+    proc->set_time_prev_state(timeInPrevState);
     delete event; event = nullptr;
 
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
         // must come from BLOCKED or CREATED
         // add to run queue, no event created
+        proc->state_ts=CURRENT_TIME;
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         break;
@@ -208,6 +218,7 @@ void simulation(){
         {
         // create event for either preemption or blocking
         //current_running_process = proc;
+        proc->CW+=proc->time_prev_state;
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
         if (time_remaining_to_run > 0){ // it means we did not exhaust previous CPU burst
@@ -301,7 +312,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input0","r");
+  inputfile = fopen("lab2_assign/input2","r");
   //inputfile = fopen(argv[1],"r");
 
   int AT;
@@ -328,7 +339,6 @@ int main(int argc, char *argv[]){
     tok = strtok(nullptr, " \t"); 
     int IO = atoi(tok);
     Process* process = new Process(AT, TC, CB, IO); 
-    //process -> static_prio = myrandom( maxprio );
     processes.push_back(process);
     process_state_t transition = STATE_READY;
     deslayer.put_event(AT, process, transition);
