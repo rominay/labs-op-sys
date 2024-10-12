@@ -4,12 +4,16 @@
 #include <cstring>
 #include <list>
 #include <queue>
+#include <unistd.h> // For getopt
+#include <cstdlib>  // For exit()
+#include <regex>
 
 using namespace std;
 
 FILE *inputfile;
 FILE *randfile;
 bool newProcess = true;
+bool verbose=false;
 const int BUFFER_SIZE = 4096;
 char buffer[BUFFER_SIZE];
 int ofs = 0;
@@ -40,6 +44,7 @@ public:
   int TT; // turnaround 
   int IT; // I/O time 
   int static_priority; // static priority
+  int dynamic_priority;
   int CW; // CPU waiting time
   int CPU_time; 
   int remaining_CPU_burst;
@@ -55,6 +60,7 @@ public:
 		TT = 0;
 		IT = 0;
     static_priority = myrandom(maxprio);
+    dynamic_priority = static_priority-1;
 		CW = 0;
     CPU_time=0;
     remaining_CPU_burst=0;
@@ -162,7 +168,7 @@ public:
 };
 BaseScheduler *scheduler;
 // FCFS Scheduler 
-class FSFSScheduler : public BaseScheduler {
+class FCFSScheduler : public BaseScheduler {
 private:
     queue<Process*> runQueue; 
 
@@ -211,6 +217,8 @@ void simulation(){
       case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
+        proc->dynamic_priority-=1;
+        if (proc->dynamic_priority==-1) proc->static_priority-1; // TO DO: check if this is correct
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         break;
@@ -292,7 +300,73 @@ void simulation(){
   }
 };
 
+// Function to display help message
+void display_help() {
+    std::cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
+              << "Options:\n"
+              << "  -v        Enable verbose output\n"
+              << "  -s <schedspec> Specify the scheduling specification (requires argument)\n"
+              << "  inputfile The input file to be processed\n"
+              << "  randfile  The random file to be used\n";
+    exit(0);
+}
 
+// Function to parse the scheduling specification
+bool parse_schedspec(const std::string& spec) {
+    // Case 1: FLS (no arguments)
+    if (spec == "F") {
+      scheduler = new FCFSScheduler();
+      quantum = 10000;
+      return true;
+    }
+    if (spec == "L") {
+        
+      return true;
+    }
+    if (spec == "S") {
+        
+      return true;
+    }
+
+    // Case 2: R<num> (e.g., R100)
+    std::regex r_regex("^R([0-9]+)$");
+    std::smatch r_match;
+    if (std::regex_match(spec, r_match, r_regex)) {
+        std::cout << "Scheduling specification: R<num>\n";
+        std::cout << "  num: " << r_match[1] << std::endl;
+        return true;
+    }
+
+    // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
+    std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
+    std::smatch p_match;
+    if (std::regex_match(spec, p_match, p_regex)) {
+        std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
+        std::cout << "  num: " << p_match[1];
+        if (p_match[2].length() > 0) {
+            std::cout << ", maxprio: " << p_match[2];
+        }
+        std::cout << std::endl;
+        return true;
+    }
+
+    // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
+    std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
+    std::smatch e_match;
+    if (std::regex_match(spec, e_match, e_regex)) {
+        std::cout << "Scheduling specification: E<num>[:<maxprios>]\n";
+        std::cout << "  num: " << e_match[1];
+        if (e_match[2].length() > 0) {
+            std::cout << ", maxprios: " << e_match[2];
+        }
+        std::cout << std::endl;
+        return true;
+    }
+
+    // Invalid format
+    std::cerr << "Invalid scheduling specification format: " << spec << std::endl;
+    return false;
+}
  
 
 int main(int argc, char *argv[]){
@@ -300,10 +374,44 @@ int main(int argc, char *argv[]){
   * Pass parameters
   */
   maxprio = 4; 
+
+  int opt;
+  string schedspec; // Variable to store the scheduling specification
+
+  // Loop through all arguments
+  while ((opt = getopt(argc, argv, "vs:")) != -1) {
+      switch (opt) {
+          case 'v':  // Enable verbose
+              verbose = true;
+              break;
+          case 's':  // Scheduling specification (argument expected)
+              schedspec = optarg;
+              break;
+          case '?':  // Handle unknown options or missing arguments
+              std::cerr << "Unknown option or missing argument!" << std::endl;
+              display_help();  // Show help message on error
+              break;
+      }
+  }
+  //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
+  parse_schedspec(schedspec);
+  // Ensure that the required input and random files are provided
+  if (optind + 2 > argc) {
+      std::cerr << "Error: Missing inputfile or randfile.\n";
+      display_help();
+  }
+
+  char* input_file = argv[optind];
+  string rand_file = argv[optind + 1];
+
+
+
+  
   /*
   * Open file with random numbers
   */
-  ifstream randfile("lab2_assign/rfile");
+  //ifstream randfile("lab2_assign/rfile");
+  ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -312,8 +420,8 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input2","r");
-  //inputfile = fopen(argv[1],"r");
+  //inputfile = fopen("lab2_assign/input2","r");
+  inputfile = fopen(input_file,"r");
 
   int AT;
   while (1){   
@@ -344,10 +452,13 @@ int main(int argc, char *argv[]){
     deslayer.put_event(AT, process, transition);
     newProcess=true;   
   }
-  scheduler = new FSFSScheduler();
-  if (scheduler->get_type() == "FCFS"){
-    quantum = 10000;
-  }
+  /*
+  * Logic for the quantum
+  */
+  //scheduler = new FCFSScheduler();
+  //if (scheduler->get_type() == "FCFS"){
+  //  quantum = 10000;
+  //}
   simulation();
   /*
   * Output
