@@ -1,0 +1,2 @@
+Scheduling specification: E<num>[:<maxprios>]
+  num: 2, maxprios: 5
