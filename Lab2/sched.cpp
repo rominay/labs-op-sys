@@ -390,8 +390,9 @@ void simulation(){
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
-          process_state_t transition = STATE_PREEMPT;
-          deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
+          current_running_process=nullptr;
+          process_state_t transition = STATE_READY;
+          deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
         else{ // it goes to I/O
           (*proc).CPU_time += time_to_run;
@@ -566,7 +567,7 @@ int main(int argc, char *argv[]){
       }
   }
   //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  parse_schedspec(schedspec);
+  //parse_schedspec(schedspec);
   // Ensure that the required input and random files are provided
   if (optind + 2 > argc) {
       std::cerr << "Error: Missing inputfile or randfile.\n";
@@ -582,8 +583,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  //ifstream randfile("lab2_assign/rfile");
-  ifstream randfile(rand_file);
+  ifstream randfile("lab2_assign/rfile");
+  //ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -592,9 +593,9 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input3","r");
-  inputfile = fopen(input_file,"r");
-
+  inputfile = fopen("lab2_assign/input0","r");
+  //inputfile = fopen(input_file,"r");
+  maxprio=4;
   int AT;
   int pid=0;
   while (1){   
@@ -629,11 +630,11 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new FCFSScheduler();
+  scheduler = new RoundRobinScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //  quantum = 10000;
-  //  maxprio=4;
-  //  verbose=true;
+  quantum = 2;
+  maxprio=4;
+  verbose=true;
  // }
   simulation();
   /*
