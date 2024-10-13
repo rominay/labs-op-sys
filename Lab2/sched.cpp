@@ -95,12 +95,20 @@ public:
   int get_remaining_CPU_burst() const {return remaining_CPU_burst;}
   int get_state_ts() const {return state_ts;}
   int get_time_prev_state() const {return time_prev_state;}
+  int get_remaining_time() const {return TC - CPU_time;}
   // add setters
   //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
   void set_FT(int new_FT) { FT=new_FT; }
   void set_state_ts(int new_state_ts) {state_ts=new_state_ts;}
   void set_time_prev_state(int new_time_prev_state) {time_prev_state=new_time_prev_state;}
+};
+
+
+struct CompareRemainingTime {
+    bool operator()(Process* p_top, Process* p_to_add ) {
+        return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
+    }
 };
 
 list <Process*> processes;
@@ -230,28 +238,45 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector<Process *> runQueue;
+	vector <Process *> runQueue;
 public:
-  string get_type() override {return "SRTF";}
+    string get_type() override {return "SRTF";}
+    Process *get_next_process() override {
+	    if (runQueue.empty()){
+			return NULL;
+		}
+		int shortestremainTime = runQueue[0]->get_remaining_time();
+        int shortestIndex = 0;
+        for(int i=1;i<runQueue.size();i++){
+        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
+            shortestremainTime=runQueue[i]->get_remaining_time();
+            shortestIndex = i;
+        }
+        }
+        Process* nextProcess = runQueue[shortestIndex];
+        runQueue.erase(runQueue.begin()+shortestIndex);;
+        return nextProcess;
+        }
+
+    void add_process(Process *p) override {
+        runQueue.push_back(p);
+	}
+};
+
+class RoundRobinScheduler : public BaseScheduler{
+	queue<Process *> runQueue;
+public:
+  string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
 			return NULL;
 		}
-		int shortestremainTime = runQueue[0]->get_TC() - runQueue[0]->CPU_time;
-    int shortestIndex = 0;
-    for(int i=1;i<runQueue.size();i++){
-      if ((runQueue[i]->get_TC() - runQueue[i]->CPU_time) < shortestremainTime){
-        shortestremainTime=runQueue[i]->get_TC() - runQueue[i]->CPU_time;
-        shortestIndex = i;
-      }
-    }
-    Process* nextProcess = runQueue[shortestIndex];
-    runQueue.erase(runQueue.begin()+shortestIndex);;
+		Process* nextProcess=runQueue.front();
+		runQueue.pop();
 		return nextProcess;
 	}
-
   void add_process(Process *p) override {
-		runQueue.push_back(p);
+		runQueue.push(p);
 	}
 };
 
@@ -325,7 +350,13 @@ void simulation(){
         if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
+        
+        if (verbose) {
+					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
+				}
+        
         proc->old_state="PREEMPT";
+        
         break;
         }
       case STATE_RUNNING:
@@ -355,7 +386,7 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
-
+        //cout << quantum <<endl;
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
@@ -470,7 +501,13 @@ bool parse_schedspec(const std::string& spec) {
     std::smatch r_match;
     if (std::regex_match(spec, r_match, r_regex)) {
         std::cout << "Scheduling specification: R<num>\n";
-        std::cout << "  num: " << r_match[1] << std::endl;
+        //std::cout << "  num: " << r_match[1] << std::endl;
+        scheduler = new RoundRobinScheduler();
+        //quantum = 10000;
+        maxprio = 4; 
+        string str_quantum = r_match[1];
+        quantum = stoi(str_quantum);
+        cout << "quantum: " << quantum << endl;
         return true;
     }
 

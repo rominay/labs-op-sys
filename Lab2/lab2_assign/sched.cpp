@@ -95,12 +95,20 @@ public:
   int get_remaining_CPU_burst() const {return remaining_CPU_burst;}
   int get_state_ts() const {return state_ts;}
   int get_time_prev_state() const {return time_prev_state;}
+  int get_remaining_time() const {return TC - CPU_time;}
   // add setters
   //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
   void set_FT(int new_FT) { FT=new_FT; }
   void set_state_ts(int new_state_ts) {state_ts=new_state_ts;}
   void set_time_prev_state(int new_time_prev_state) {time_prev_state=new_time_prev_state;}
+};
+
+
+struct CompareRemainingTime {
+    bool operator()(Process* p_top, Process* p_to_add ) {
+        return p_top->get_remaining_time() < p_to_add->get_remaining_time();  //shorter remaining time has higher priority
+    }
 };
 
 list <Process*> processes;
@@ -230,28 +238,20 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector<Process *> runQueue;
+	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
 public:
   string get_type() override {return "SRTF";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
 			return NULL;
 		}
-		int shortestremainTime = runQueue[0]->get_TC() - runQueue[0]->CPU_time;
-    int shortestIndex = 0;
-    for(int i=1;i<runQueue.size();i++){
-      if ((runQueue[i]->get_TC() - runQueue[i]->CPU_time) < shortestremainTime){
-        shortestremainTime=runQueue[i]->get_TC() - runQueue[i]->CPU_time;
-        shortestIndex = i;
-      }
-    }
-    Process* nextProcess = runQueue[shortestIndex];
-    runQueue.erase(runQueue.begin()+shortestIndex);;
-		return nextProcess;
+		Process* nextProcess = runQueue.top();
+    runQueue.pop();
+    return nextProcess;
 	}
 
   void add_process(Process *p) override {
-		runQueue.push_back(p);
+		runQueue.push(p);
 	}
 };
 
