@@ -244,16 +244,9 @@ void simulation(){
   bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
-  
-  
-  //print_eventQ();
 
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
-    //if (CURRENT_TIME==21){
-    //  printf("here");
-    //}
-    //a_list = deslayer.eventQ;
     CURRENT_TIME = event->get_timestamp();
     process_state_t transition = event->get_transition();
     int timeInPrevState;
@@ -267,16 +260,19 @@ void simulation(){
 
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
-        // must come from BLOCKED or CREATED
-        // add to run queue, no event created
-        //proc->AT=CURRENT_TIME; // we modify the arriving time
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         if (verbose) {
 					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
 				}
+        
+        if (proc->old_state!="CREATED"){
+          activeIOCount--; // we are now ready
+          if (activeIOCount == 0) {  // transition 1 -> 0 
+            totalIOTime += CURRENT_TIME - lastIOTransitionTime;
+         }
+        }
         proc->old_state="READY";
-        //print_scheduler();
         break;
       case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
@@ -284,9 +280,7 @@ void simulation(){
         {
         proc->dynamic_priority-=1;
         if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
-        //proc->AT=CURRENT_TIME; // we modify the arriving time
         scheduler->add_process(proc);
-        //print_scheduler();
         CALL_SCHEDULER = true;
         proc->old_state="PREEMPT";
         break;
@@ -330,12 +324,6 @@ void simulation(){
           process_state_t transition;
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
             transition = STATE_BLOCKED;
-
-            if (activeIOCount == 0) {  // no active IOs
-                lastIOTransitionTime = CURRENT_TIME+time_to_run;  // it is now
-            }
-            activeIOCount++;  // it comes into IO state
-            
           }
           else{ // we are done 
             transition = STATE_DONE; 
@@ -349,6 +337,10 @@ void simulation(){
         
       case STATE_BLOCKED:
         {
+        activeIOCount++;
+        if (activeIOCount == 1) {  // transition 0 -> 1 
+          lastIOTransitionTime = CURRENT_TIME;
+        }
         //create an event for when process becomes READY again
         int IO_burst= myrandom(proc->get_IO());
         if (verbose) {
@@ -361,12 +353,6 @@ void simulation(){
         CALL_SCHEDULER = true;
         current_running_process = nullptr;
         proc->old_state="BLOCK";
-        
-        
-        activeIOCount--;  // process comes out
-        if (activeIOCount == 0) {  
-          totalIOTime += (CURRENT_TIME+IO_burst - lastIOTransitionTime); 
-        }
         break;
         }
 
