@@ -499,8 +499,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  ifstream randfile("lab2_assign/rfile");
-  //ifstream randfile(rand_file);
+  //ifstream randfile("lab2_assign/rfile");
+  ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -509,8 +509,8 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input3","r");
-  //inputfile = fopen(input_file,"r");
+  //inputfile = fopen("lab2_assign/input3","r");
+  inputfile = fopen(input_file,"r");
 
   int AT;
   int pid=0;
@@ -546,12 +546,12 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  scheduler = new FCFSScheduler();
-  if (scheduler->get_type() == "FCFS"){
-    quantum = 10000;
-    maxprio=4;
-    verbose=true;
-  }
+  //scheduler = new FCFSScheduler();
+  //if (scheduler->get_type() == "FCFS"){
+  //  quantum = 10000;
+  //  maxprio=4;
+  //  verbose=true;
+ // }
   simulation();
   /*
   * Output
