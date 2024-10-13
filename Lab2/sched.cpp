@@ -179,7 +179,7 @@ public:
 // Base class for scheduling
 class BaseScheduler {
 public:
-    queue<Process*> runQueue;
+    //queue<Process*> runQueue;
     int quantum;
     virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
@@ -191,7 +191,7 @@ BaseScheduler *scheduler;
 // FCFS Scheduler 
 class FCFSScheduler : public BaseScheduler {
 private:
-    //queue<Process*> runQueue; 
+    queue<Process*> runQueue; 
 
 public:
     //queue<Process*> runQueue;
@@ -211,23 +211,66 @@ public:
     }
 };
 
+class LCFSScheduler : public BaseScheduler{
+	deque<Process *> runQueue;
+
+public:
+  string get_type() override {return "LCFS";}
+	Process *get_next_process() override {
+		if (runQueue.empty()){
+			return NULL;
+		}
+		Process* nextProcess=runQueue.back();
+		runQueue.pop_back();
+		return nextProcess;
+	}
+  void add_process(Process *p) override {
+		runQueue.push_back(p);
+	}
+};
+
+class SRTFScheduler : public BaseScheduler{
+	vector<Process *> runQueue;
+public:
+  string get_type() override {return "SRTF";}
+	Process *get_next_process() override {
+		if (runQueue.empty()){
+			return NULL;
+		}
+		int shortestremainTime = runQueue[0]->get_TC() - runQueue[0]->CPU_time;
+    int shortestIndex = 0;
+    for(int i=1;i<runQueue.size();i++){
+      if ((runQueue[i]->get_TC() - runQueue[i]->CPU_time) < shortestremainTime){
+        shortestremainTime=runQueue[i]->get_TC() - runQueue[i]->CPU_time;
+        shortestIndex = i;
+      }
+    }
+    Process* nextProcess = runQueue[shortestIndex];
+    runQueue.erase(runQueue.begin()+shortestIndex);;
+		return nextProcess;
+	}
+
+  void add_process(Process *p) override {
+		runQueue.push_back(p);
+	}
+};
 
 
 DesLayer deslayer;
 Process* current_running_process;
 
 
-void print_scheduler(){
+//void print_scheduler(){
 // show scheduler 
-  cout <<  "SCHED ";
-  queue <Process*> q = scheduler->runQueue; 
-  while (!q.empty()) {
-    Process* front = q.front();
-    cout << front->pid  << ":" << front->AT << " ";
-    q.pop(); // Remove the element from the queue
-  }
-  cout << endl;
-};
+  //cout <<  "SCHED ";
+  //queue <Process*> q = scheduler->runQueue; 
+  //while (!q.empty()) {
+  //  Process* front = q.front();
+  //  cout << front->pid  << ":" << front->AT << " ";
+  //  q.pop(); // Remove the element from the queue
+  //}
+  //cout << endl;
+//};
 
 void print_eventQ(){
   // show event Q
@@ -266,8 +309,8 @@ void simulation(){
 					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
 				}
         
-        if (proc->old_state!="CREATED"){
-          activeIOCount--; // we are now ready
+        if (proc->old_state!="CREATED"){ // it not the first time put on ready
+          activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
          }
@@ -337,7 +380,7 @@ void simulation(){
         
       case STATE_BLOCKED:
         {
-        activeIOCount++;
+        activeIOCount++; // it is doing IO 
         if (activeIOCount == 1) {  // transition 0 -> 1 
           lastIOTransitionTime = CURRENT_TIME;
         }
@@ -410,11 +453,15 @@ bool parse_schedspec(const std::string& spec) {
       return true;
     }
     if (spec == "L") {
-        
+      scheduler = new LCFSScheduler();
+      quantum = 10000;
+      maxprio = 4; 
       return true;
     }
     if (spec == "S") {
-        
+      scheduler = new SRTFScheduler();
+      quantum = 10000;
+      maxprio = 4; 
       return true;
     }
 
@@ -482,8 +529,7 @@ int main(int argc, char *argv[]){
       }
   }
   //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  //parse_schedspec(schedspec);
-  parse_schedspec("F");
+  parse_schedspec(schedspec);
   // Ensure that the required input and random files are provided
   if (optind + 2 > argc) {
       std::cerr << "Error: Missing inputfile or randfile.\n";
