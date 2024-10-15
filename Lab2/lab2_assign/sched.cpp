@@ -107,7 +107,7 @@ public:
 
 struct CompareRemainingTime {
     bool operator()(Process* p_top, Process* p_to_add ) {
-        return p_top->get_remaining_time() < p_to_add->get_remaining_time();  //shorter remaining time has higher priority
+        return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
     }
 };
 
@@ -193,6 +193,7 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
+    //virtual int get_quantum() = 0;
     //virtual bool test_preempt(Process* activated_process);
 };
 BaseScheduler *scheduler;
@@ -238,21 +239,49 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
+	vector <Process *> runQueue;
 public:
-  string get_type() override {return "SRTF";}
+    string get_type() override {return "SRTF";}
+    Process *get_next_process() override {
+	    if (runQueue.empty()){
+			return NULL;
+		}
+		int shortestremainTime = runQueue[0]->get_remaining_time();
+        int shortestIndex = 0;
+        for(int i=1;i<runQueue.size();i++){
+        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
+            shortestremainTime=runQueue[i]->get_remaining_time();
+            shortestIndex = i;
+        }
+        }
+        Process* nextProcess = runQueue[shortestIndex];
+        runQueue.erase(runQueue.begin()+shortestIndex);;
+        return nextProcess;
+        }
+
+    void add_process(Process *p) override {
+        runQueue.push_back(p);
+	}
+};
+
+class RoundRobinScheduler : public BaseScheduler{
+	queue<Process *> runQueue;
+public:
+  string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
 			return NULL;
 		}
-		Process* nextProcess = runQueue.top();
-    runQueue.pop();
-    return nextProcess;
+		Process* nextProcess=runQueue.front();
+		runQueue.pop();
+		return nextProcess;
 	}
-
   void add_process(Process *p) override {
 		runQueue.push(p);
 	}
+  //int get_quantum() override {
+  //  return quantum;
+  //}
 };
 
 
@@ -306,8 +335,14 @@ void simulation(){
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         if (verbose) {
-					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
-				}
+          if (proc->old_state=="RUNNG" || proc->old_state=="PREEMP"){
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
+            cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
+          }
+          else {
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
+          }
+        }
         
         if (proc->old_state!="CREATED"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
@@ -325,7 +360,13 @@ void simulation(){
         if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
+        
+        //if (verbose) {
+				//	cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
+				//}
+        
         proc->old_state="PREEMPT";
+        
         break;
         }
       case STATE_RUNNING:
@@ -355,12 +396,13 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
-
+        //cout << quantum <<endl;
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
+          current_running_process=nullptr;
           process_state_t transition = STATE_PREEMPT;
-          deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
+          deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
         else{ // it goes to I/O
           (*proc).CPU_time += time_to_run;
@@ -465,12 +507,19 @@ bool parse_schedspec(const std::string& spec) {
       return true;
     }
 
+
     // Case 2: R<num> (e.g., R100)
     std::regex r_regex("^R([0-9]+)$");
     std::smatch r_match;
     if (std::regex_match(spec, r_match, r_regex)) {
-        std::cout << "Scheduling specification: R<num>\n";
-        std::cout << "  num: " << r_match[1] << std::endl;
+        //std::cout << "Scheduling specification: R<num>\n";
+        //std::cout << "  num: " << r_match[1] << std::endl;
+        scheduler = new RoundRobinScheduler();
+        //quantum = 10000;
+        maxprio = 4; 
+        string str_quantum = r_match[1];
+        quantum = stoi(str_quantum);
+        //cout << "quantum: " << quantum << endl;
         return true;
     }
 
@@ -485,6 +534,7 @@ bool parse_schedspec(const std::string& spec) {
         }
         std::cout << std::endl;
         return true;
+
     }
 
     // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
@@ -555,9 +605,9 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input3","r");
+  //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-
+  maxprio=4;
   int AT;
   int pid=0;
   while (1){   
@@ -592,17 +642,22 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new FCFSScheduler();
+  //scheduler = new RoundRobinScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //  quantum = 10000;
-  //  maxprio=4;
-  //  verbose=true;
+  //quantum = 2;
+  //maxprio=4;
+  //verbose=true;
  // }
   simulation();
   /*
   * Output
-  */
-  cout<<scheduler->get_type()<<endl;
+  */ 
+  string type = scheduler->get_type();
+  cout<<type;
+  if (type == "RR") { 
+    cout << " " << quantum;
+  }
+  cout << endl;
   /*
   * For each process 
   */

@@ -193,6 +193,7 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
+    //virtual int get_quantum() = 0;
     //virtual bool test_preempt(Process* activated_process);
 };
 BaseScheduler *scheduler;
@@ -278,6 +279,9 @@ public:
   void add_process(Process *p) override {
 		runQueue.push(p);
 	}
+  //int get_quantum() override {
+  //  return quantum;
+  //}
 };
 
 
@@ -316,6 +320,9 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
+    //if (CURRENT_TIME == 10) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -331,8 +338,14 @@ void simulation(){
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         if (verbose) {
-					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" <<endl;
-				}
+          if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
+            cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
+          }
+          else {
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
+          }
+        }
         
         if (proc->old_state!="CREATED"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
@@ -342,23 +355,23 @@ void simulation(){
         }
         proc->old_state="READY";
         break;
-      case STATE_PREEMPT: // similar to TRANS_TO_READY
+      //case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
-        {
-        proc->dynamic_priority-=1;
-        if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
-        scheduler->add_process(proc);
-        CALL_SCHEDULER = true;
+      //  {
+      //  proc->dynamic_priority-=1;
+      //  if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
+      //  scheduler->add_process(proc);
+      //  CALL_SCHEDULER = true;
         
-        if (verbose) {
-					cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
-				}
+        //if (verbose) {
+				//	cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
+				//}
         
-        proc->old_state="PREEMPT";
+      //  proc->old_state="READY";
         
-        break;
-        }
+      //  break;
+      //  }
       case STATE_RUNNING:
         {
         int CPU_burst;
@@ -369,6 +382,7 @@ void simulation(){
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
         if (time_remaining_to_run > 0){ // it means we did not exhaust previous CPU burst
           time_to_run = time_remaining_to_run;
+
         }
         else{ // we get a new CPU bust 
           CPU_burst= myrandom(proc->get_CB());
@@ -383,7 +397,9 @@ void simulation(){
         }
 
         if (verbose) {
-					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"RUNNG";
+          string old_state = proc->old_state;
+          //if (old_state=="PREEMPT") {old_state="READY";}
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< old_state <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
         //cout << quantum <<endl;
@@ -397,6 +413,7 @@ void simulation(){
         else{ // it goes to I/O
           (*proc).CPU_time += time_to_run;
           process_state_t transition;
+          proc->set_remaining_CPU_burst(0);
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
             transition = STATE_BLOCKED;
           }
@@ -497,18 +514,19 @@ bool parse_schedspec(const std::string& spec) {
       return true;
     }
 
+
     // Case 2: R<num> (e.g., R100)
     std::regex r_regex("^R([0-9]+)$");
     std::smatch r_match;
     if (std::regex_match(spec, r_match, r_regex)) {
-        std::cout << "Scheduling specification: R<num>\n";
+        //std::cout << "Scheduling specification: R<num>\n";
         //std::cout << "  num: " << r_match[1] << std::endl;
         scheduler = new RoundRobinScheduler();
         //quantum = 10000;
         maxprio = 4; 
         string str_quantum = r_match[1];
         quantum = stoi(str_quantum);
-        cout << "quantum: " << quantum << endl;
+        //cout << "quantum: " << quantum << endl;
         return true;
     }
 
@@ -523,6 +541,7 @@ bool parse_schedspec(const std::string& spec) {
         }
         std::cout << std::endl;
         return true;
+
     }
 
     // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
@@ -567,7 +586,7 @@ int main(int argc, char *argv[]){
       }
   }
   //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  //parse_schedspec(schedspec);
+  parse_schedspec(schedspec);
   // Ensure that the required input and random files are provided
   if (optind + 2 > argc) {
       std::cerr << "Error: Missing inputfile or randfile.\n";
@@ -639,8 +658,13 @@ int main(int argc, char *argv[]){
   simulation();
   /*
   * Output
-  */
-  cout<<scheduler->get_type()<<endl;
+  */ 
+  string type = scheduler->get_type();
+  cout<<type;
+  if (type == "RR") { 
+    cout << " " << quantum;
+  }
+  cout << endl;
   /*
   * For each process 
   */
