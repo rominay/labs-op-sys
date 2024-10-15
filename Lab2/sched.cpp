@@ -602,7 +602,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input3","r");
+  inputfile = fopen("lab2_assign/input2","r"); // 3
   //inputfile = fopen(input_file,"r");
   maxprio=4;
   int AT;
@@ -639,7 +639,8 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  scheduler = new SRTFScheduler();
+  scheduler = new RoundRobinScheduler();
+  //scheduler = new SRTFScheduler();
   //if (scheduler->get_type() == "FCFS"){
   //quantum = 2;
   maxprio=4;
