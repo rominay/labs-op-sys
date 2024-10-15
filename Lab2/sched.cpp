@@ -107,7 +107,7 @@ public:
 
 struct CompareRemainingTime {
     bool operator()(Process* p_top, Process* p_to_add ) {
-        return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
+      return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
     }
 };
 
@@ -239,28 +239,20 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector <Process *> runQueue;
+	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
 public:
-    string get_type() override {return "SRTF";}
-    Process *get_next_process() override {
-	    if (runQueue.empty()){
+  string get_type() override {return "SRTF";}
+	Process *get_next_process() override {
+		if (runQueue.empty()){
 			return NULL;
 		}
-		int shortestremainTime = runQueue[0]->get_remaining_time();
-        int shortestIndex = 0;
-        for(int i=1;i<runQueue.size();i++){
-        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
-            shortestremainTime=runQueue[i]->get_remaining_time();
-            shortestIndex = i;
-        }
-        }
-        Process* nextProcess = runQueue[shortestIndex];
-        runQueue.erase(runQueue.begin()+shortestIndex);;
-        return nextProcess;
-        }
+		Process* nextProcess = runQueue.top();
+    runQueue.pop();
+    return nextProcess;
+	}
 
-    void add_process(Process *p) override {
-        runQueue.push_back(p);
+  void add_process(Process *p) override {
+		runQueue.push(p);
 	}
 };
 
@@ -320,7 +312,7 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 10) {
+    //if (CURRENT_TIME == 44) {
     //  printf("here");
     //}
     process_state_t transition = event->get_transition();
@@ -347,7 +339,7 @@ void simulation(){
           }
         }
         
-        if (proc->old_state!="CREATED"){ // it not the first time put on ready
+        if (proc->old_state=="BLOCK"){ // it came from blocked
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
@@ -461,15 +453,13 @@ void simulation(){
     if (CALL_SCHEDULER) {
       
       if (deslayer.get_next_event_time() == CURRENT_TIME){
-        //event = deslayer.get_event();
         continue; 
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
-        //print_scheduler();
+        
         if (current_running_process == nullptr){
-          //event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
@@ -612,7 +602,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input0","r");
+  inputfile = fopen("lab2_assign/input3","r");
   //inputfile = fopen(input_file,"r");
   maxprio=4;
   int AT;
@@ -649,9 +639,9 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  scheduler = new RoundRobinScheduler();
+  scheduler = new SRTFScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  quantum = 2;
+  //quantum = 2;
   maxprio=4;
   verbose=true;
  // }

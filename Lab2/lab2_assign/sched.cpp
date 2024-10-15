@@ -239,28 +239,20 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector <Process *> runQueue;
+	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
 public:
-    string get_type() override {return "SRTF";}
-    Process *get_next_process() override {
-	    if (runQueue.empty()){
+  string get_type() override {return "SRTF";}
+	Process *get_next_process() override {
+		if (runQueue.empty()){
 			return NULL;
 		}
-		int shortestremainTime = runQueue[0]->get_remaining_time();
-        int shortestIndex = 0;
-        for(int i=1;i<runQueue.size();i++){
-        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
-            shortestremainTime=runQueue[i]->get_remaining_time();
-            shortestIndex = i;
-        }
-        }
-        Process* nextProcess = runQueue[shortestIndex];
-        runQueue.erase(runQueue.begin()+shortestIndex);;
-        return nextProcess;
-        }
+		Process* nextProcess = runQueue.top();
+    runQueue.pop();
+    return nextProcess;
+	}
 
-    void add_process(Process *p) override {
-        runQueue.push_back(p);
+  void add_process(Process *p) override {
+		runQueue.push(p);
 	}
 };
 
@@ -320,6 +312,9 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
+    //if (CURRENT_TIME == 44) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -335,7 +330,7 @@ void simulation(){
         scheduler->add_process(proc);
         CALL_SCHEDULER = true;
         if (verbose) {
-          if (proc->old_state=="RUNNG" || proc->old_state=="PREEMP"){
+          if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
             cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
           }
@@ -344,7 +339,7 @@ void simulation(){
           }
         }
         
-        if (proc->old_state!="CREATED"){ // it not the first time put on ready
+        if (proc->old_state=="BLOCK"){ // it came from blocked
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
@@ -352,23 +347,23 @@ void simulation(){
         }
         proc->old_state="READY";
         break;
-      case STATE_PREEMPT: // similar to TRANS_TO_READY
+      //case STATE_PREEMPT: // similar to TRANS_TO_READY
         // must come from RUNNING (preemption)
         // add to runqueue (no event is generated)
-        {
-        proc->dynamic_priority-=1;
-        if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
-        scheduler->add_process(proc);
-        CALL_SCHEDULER = true;
+      //  {
+      //  proc->dynamic_priority-=1;
+      //  if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
+      //  scheduler->add_process(proc);
+      //  CALL_SCHEDULER = true;
         
         //if (verbose) {
 				//	cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
 				//}
         
-        proc->old_state="PREEMPT";
+      //  proc->old_state="READY";
         
-        break;
-        }
+      //  break;
+      //  }
       case STATE_RUNNING:
         {
         int CPU_burst;
@@ -379,6 +374,7 @@ void simulation(){
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
         if (time_remaining_to_run > 0){ // it means we did not exhaust previous CPU burst
           time_to_run = time_remaining_to_run;
+
         }
         else{ // we get a new CPU bust 
           CPU_burst= myrandom(proc->get_CB());
@@ -393,7 +389,9 @@ void simulation(){
         }
 
         if (verbose) {
-					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"RUNNG";
+          string old_state = proc->old_state;
+          //if (old_state=="PREEMPT") {old_state="READY";}
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< old_state <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
         //cout << quantum <<endl;
@@ -401,12 +399,13 @@ void simulation(){
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
           current_running_process=nullptr;
-          process_state_t transition = STATE_PREEMPT;
+          process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
         else{ // it goes to I/O
           (*proc).CPU_time += time_to_run;
           process_state_t transition;
+          proc->set_remaining_CPU_burst(0);
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
             transition = STATE_BLOCKED;
           }
@@ -454,15 +453,13 @@ void simulation(){
     if (CALL_SCHEDULER) {
       
       if (deslayer.get_next_event_time() == CURRENT_TIME){
-        //event = deslayer.get_event();
         continue; 
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
-        //print_scheduler();
+        
         if (current_running_process == nullptr){
-          //event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
@@ -605,7 +602,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input0","r");
+  //inputfile = fopen("lab2_assign/input2","r");
   inputfile = fopen(input_file,"r");
   maxprio=4;
   int AT;
