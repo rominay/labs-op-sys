@@ -305,16 +305,16 @@ void print_eventQ(){
 void simulation(){
   Event* event;
   int CURRENT_TIME;
-  bool CALL_SCHEDULER;
+  bool CALL_SCHEDULER=false;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
 
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 44) {
-    //  printf("here");
-    //}
+    if (CURRENT_TIME == 44) {
+      printf("here");
+    }
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -398,7 +398,7 @@ void simulation(){
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
-          current_running_process=nullptr;
+          current_running_process=nullptr; // doesi t make sense?
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
@@ -465,7 +465,7 @@ void simulation(){
         // create event to make this process runnable for same time
         process_state_t transition = STATE_RUNNING;
 				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
-				current_running_process = nullptr;
+				//current_running_process = nullptr;
       }
     }
   }
@@ -592,8 +592,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  ifstream randfile("lab2_assign/rfile");
-  //ifstream randfile(rand_file);
+  //ifstream randfile("lab2_assign/rfile");
+  ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -602,8 +602,8 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input2","r"); // 3
-  //inputfile = fopen(input_file,"r");
+  //inputfile = fopen("lab2_assign/input2","r"); // 3
+  inputfile = fopen(input_file,"r");
   maxprio=4;
   int AT;
   int pid=0;
@@ -639,12 +639,12 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  scheduler = new RoundRobinScheduler();
+  //scheduler = new RoundRobinScheduler();
   //scheduler = new SRTFScheduler();
   //if (scheduler->get_type() == "FCFS"){
   //quantum = 2;
   maxprio=4;
-  verbose=true;
+  //verbose=true;
  // }
   simulation();
   /*
