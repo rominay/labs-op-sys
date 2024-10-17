@@ -336,7 +336,7 @@ void simulation(){
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
         scheduler->add_process(proc);
-        if (proc->old_state=="RUNNING") {current_running_process=nullptr;}
+        if (proc->old_state=="RUNNG") {current_running_process=nullptr;}
         //current_running_process=nullptr;
         CALL_SCHEDULER = true;
         if (verbose) {
@@ -662,9 +662,9 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new FCFSScheduler();
+  //scheduler = new RoundRobinScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //quantum = 10000;
+  //quantum = 2;
   //maxprio=4;
   //verbose=true;
  // }
