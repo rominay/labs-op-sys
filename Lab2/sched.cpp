@@ -107,7 +107,7 @@ public:
 
 struct CompareRemainingTime {
     bool operator()(Process* p_top, Process* p_to_add ) {
-      return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
+        return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
     }
 };
 
@@ -239,20 +239,28 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
+	vector <Process *> runQueue;
 public:
-  string get_type() override {return "SRTF";}
-	Process *get_next_process() override {
-		if (runQueue.empty()){
+    string get_type() override {return "SRTF";}
+    Process *get_next_process() override {
+	    if (runQueue.empty()){
 			return NULL;
 		}
-		Process* nextProcess = runQueue.top();
-    runQueue.pop();
-    return nextProcess;
-	}
+		int shortestremainTime = runQueue[0]->get_remaining_time();
+        int shortestIndex = 0;
+        for(int i=1;i<runQueue.size();i++){
+        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
+            shortestremainTime=runQueue[i]->get_remaining_time();
+            shortestIndex = i;
+        }
+        }
+        Process* nextProcess = runQueue[shortestIndex];
+        runQueue.erase(runQueue.begin()+shortestIndex);;
+        return nextProcess;
+        }
 
-  void add_process(Process *p) override {
-		runQueue.push(p);
+    void add_process(Process *p) override {
+        runQueue.push_back(p);
 	}
 };
 
@@ -305,16 +313,16 @@ void print_eventQ(){
 void simulation(){
   Event* event;
   int CURRENT_TIME;
-  bool CALL_SCHEDULER=false;
+  bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
 
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    if (CURRENT_TIME == 44) {
-      printf("here");
-    }
+    //if (CURRENT_TIME == 44) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -328,6 +336,8 @@ void simulation(){
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
         scheduler->add_process(proc);
+        if (proc->old_state=="RUNNING") {current_running_process=nullptr;}
+        //current_running_process=nullptr;
         CALL_SCHEDULER = true;
         if (verbose) {
           if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
@@ -339,12 +349,14 @@ void simulation(){
           }
         }
         
-        if (proc->old_state=="BLOCK"){ // it came from blocked
+        if (proc->old_state=="BLOCK"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
          }
         }
+        
+
         proc->old_state="READY";
         break;
       //case STATE_PREEMPT: // similar to TRANS_TO_READY
@@ -368,7 +380,7 @@ void simulation(){
         {
         int CPU_burst;
         // create event for either preemption or blocking
-        current_running_process = proc;
+        //current_running_process = proc;
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
@@ -398,7 +410,10 @@ void simulation(){
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
-          current_running_process=nullptr; // doesi t make sense?
+          //current_running_process=nullptr;
+          //if (proc == current_running_process) {
+          //current_running_process = nullptr;
+          //}
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
@@ -435,7 +450,9 @@ void simulation(){
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
+        //if (proc == current_running_process) {
         current_running_process = nullptr;
+        //}
         proc->old_state="BLOCK";
         break;
         }
@@ -445,21 +462,27 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
 				}
         last_event_FT = CURRENT_TIME;
-        current_running_process = nullptr;
+        //current_running_process = nullptr;
+        //if (proc == current_running_process) {
+        //  current_running_process = nullptr;
+        //}
         proc->old_state="DONE";
+        current_running_process=nullptr;
         CALL_SCHEDULER=true;
     }
 
     if (CALL_SCHEDULER) {
       
       if (deslayer.get_next_event_time() == CURRENT_TIME){
+        //event = deslayer.get_event();
         continue; 
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
-        
+        //print_scheduler();
         if (current_running_process == nullptr){
+          //event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
@@ -602,7 +625,7 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input2","r"); // 3
+  //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
   maxprio=4;
   int AT;
@@ -639,11 +662,10 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new RoundRobinScheduler();
-  //scheduler = new SRTFScheduler();
+  //scheduler = new FCFSScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //quantum = 2;
-  maxprio=4;
+  //quantum = 10000;
+  //maxprio=4;
   //verbose=true;
  // }
   simulation();
