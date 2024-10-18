@@ -502,7 +502,6 @@ void simulation(){
           proc->set_remaining_CPU_burst(0);
           if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
             transition = STATE_BLOCKED;
-            proc->dynamic_priority=proc->static_priority-1;
           }
           else{ // we are done 
             transition = STATE_DONE; 
@@ -629,9 +628,11 @@ bool parse_schedspec(const std::string& spec) {
     if (std::regex_match(spec, p_match, p_regex)) {
         //std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
         //std::cout << "  num: " << p_match[1];
-        string str_quantum = r_match[1];
+        scheduler = new PRIOScheduler();
+        string str_quantum = p_match[1];
         quantum = stoi(str_quantum); // TO DO: check if quantum is required
         if (p_match[2].length() > 0) {
+          cout << p_match[2];
           string str_maxprios = p_match[2];
           maxprio = stoi(str_maxprios);
             //std::cout << ", maxprio: " << p_match[2];
@@ -760,7 +761,7 @@ int main(int argc, char *argv[]){
   */ 
   string type = scheduler->get_type();
   cout<<type;
-  if (type == "RR") { 
+  if (type == "RR" || type == "PRIO") { 
     cout << " " << quantum;
   }
   cout << endl;
