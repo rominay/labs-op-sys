@@ -413,10 +413,8 @@ void simulation(){
 
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
+        
         scheduler->add_process(proc);
-        if (proc->old_state=="RUNNG") {current_running_process=nullptr;}
-        //current_running_process=nullptr;
-        CALL_SCHEDULER = true;
         if (verbose) {
           if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
@@ -426,13 +424,24 @@ void simulation(){
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
           }
         }
+
+        
         
         if (proc->old_state=="BLOCK"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
-         }
+          }
+          proc->dynamic_priority = proc->static_priority-1;
         }
+
+        if (proc->old_state=="RUNNG") {
+          current_running_process=nullptr;
+          proc->dynamic_priority-=1; // we came from preemption
+          if (proc->dynamic_priority==-1){proc->dynamic_priority = proc->static_priority-1;}
+        }
+        //current_running_process=nullptr;
+        CALL_SCHEDULER = true;
         
 
         proc->old_state="READY";
@@ -492,7 +501,7 @@ void simulation(){
           //if (proc == current_running_process) {
           //current_running_process = nullptr;
           //}
-          proc->dynamic_priority-=1; // we will go to preemption
+          //proc->dynamic_priority-=1; // we will go to preemption
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
@@ -714,7 +723,7 @@ int main(int argc, char *argv[]){
   //inputfile = fopen("input0","r");
   //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-  //maxprio=4;
+  maxprio=4;
   int AT;
   int pid=0;
   while (1){   
