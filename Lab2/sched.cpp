@@ -414,6 +414,21 @@ void simulation(){
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
         
+        if (proc->old_state=="BLOCK"){ // it not the first time put on ready
+          activeIOCount--; // it stopped being doing IO
+          if (activeIOCount == 0) {  // transition 1 -> 0 
+            totalIOTime += CURRENT_TIME - lastIOTransitionTime;
+          }
+          proc->dynamic_priority = proc->static_priority-1; // after coming from IO it is reset like this
+        }
+
+        if (proc->old_state=="RUNNG") {
+          current_running_process=nullptr;
+          proc->dynamic_priority-=1; // we came from preemption
+          //if (proc->dynamic_priority==-1){proc->dynamic_priority = proc->static_priority-1;}
+        }
+        //current_running_process=nullptr;
+        CALL_SCHEDULER = true;
         scheduler->add_process(proc);
         if (verbose) {
           if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
@@ -424,25 +439,6 @@ void simulation(){
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
           }
         }
-
-        
-        
-        if (proc->old_state=="BLOCK"){ // it not the first time put on ready
-          activeIOCount--; // it stopped being doing IO
-          if (activeIOCount == 0) {  // transition 1 -> 0 
-            totalIOTime += CURRENT_TIME - lastIOTransitionTime;
-          }
-          proc->dynamic_priority = proc->static_priority-1;
-        }
-
-        if (proc->old_state=="RUNNG") {
-          current_running_process=nullptr;
-          proc->dynamic_priority-=1; // we came from preemption
-          if (proc->dynamic_priority==-1){proc->dynamic_priority = proc->static_priority-1;}
-        }
-        //current_running_process=nullptr;
-        CALL_SCHEDULER = true;
-        
 
         proc->old_state="READY";
         break;
