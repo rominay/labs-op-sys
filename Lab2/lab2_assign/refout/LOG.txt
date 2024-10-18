@@ -1,69 +1,45 @@
-diff -b -B outputdir/out_0_P5_3 refout/out_0_P5_3
-DIR1-SUM ==> SUM: 627 31.90 20.41 164.00 0.00 0.319
-DIR2-SUM ==> SUM: 627 31.90 20.41 164.00 0.00 0.319
 diff -b -B outputdir/out_0_E2_5 refout/out_0_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 627 31.90 20.41 164.00 0.00 0.319
 diff -b -B outputdir/out_0_E4 refout/out_0_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 627 31.90 20.41 164.00 0.00 0.319
-diff -b -B outputdir/out_1_P5_3 refout/out_1_P5_3
-DIR1-SUM ==> SUM: 8249 12.12 7.13 317.60 0.00 0.061
-DIR2-SUM ==> SUM: 8249 12.12 7.13 317.60 0.00 0.061
 diff -b -B outputdir/out_1_E2_5 refout/out_1_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 8249 12.12 7.13 317.60 0.00 0.061
 diff -b -B outputdir/out_1_E4 refout/out_1_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 8249 12.12 7.13 317.60 0.00 0.061
-diff -b -B outputdir/out_2_P5_3 refout/out_2_P5_3
-DIR1-SUM ==> SUM: 161 37.27 90.68 142.33 10.67 1.863
-DIR2-SUM ==> SUM: 151 39.74 89.40 134.33 9.33 1.987
 diff -b -B outputdir/out_2_E2_5 refout/out_2_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 155 38.71 94.19 149.67 7.33 1.935
 diff -b -B outputdir/out_2_E4 refout/out_2_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 161 37.27 90.06 143.67 12.00 1.863
-diff -b -B outputdir/out_3_P5_3 refout/out_3_P5_3
-DIR1-SUM ==> SUM: 1073 26.19 16.12 169.75 53.00 0.373
-DIR2-SUM ==> SUM: 1079 26.04 11.40 176.50 68.50 0.371
 diff -b -B outputdir/out_3_E2_5 refout/out_3_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1074 26.16 16.48 162.50 45.25 0.372
 diff -b -B outputdir/out_3_E4 refout/out_3_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1074 26.16 21.79 178.75 48.50 0.372
-diff -b -B outputdir/out_4_P5_3 refout/out_4_P5_3
-DIR1-SUM ==> SUM: 1041 49.95 84.44 539.75 43.25 0.384
-DIR2-SUM ==> SUM: 1081 48.10 84.83 552.75 47.00 0.370
 diff -b -B outputdir/out_4_E2_5 refout/out_4_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1112 46.76 85.70 575.50 37.25 0.360
 diff -b -B outputdir/out_4_E4 refout/out_4_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1029 50.53 87.76 571.75 29.50 0.389
-diff -b -B outputdir/out_5_P5_3 refout/out_5_P5_3
-DIR1-SUM ==> SUM: 1256 79.62 62.18 800.25 269.50 0.318
-DIR2-SUM ==> SUM: 1222 81.83 62.77 842.25 290.00 0.327
 diff -b -B outputdir/out_5_E2_5 refout/out_5_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1230 81.30 63.82 823.00 291.50 0.325
 diff -b -B outputdir/out_5_E4 refout/out_5_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 1265 79.05 63.64 819.00 276.25 0.316
-diff -b -B outputdir/out_6_P5_3 refout/out_6_P5_3
-DIR1-SUM ==> SUM: 3297 91.81 85.08 2299.40 1495.40 0.303
-DIR2-SUM ==> SUM: 3277 92.37 83.19 2504.50 1727.30 0.305
 diff -b -B outputdir/out_6_E2_5 refout/out_6_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 3625 83.50 84.25 2401.60 1610.10 0.276
 diff -b -B outputdir/out_6_E4 refout/out_6_E4
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 3235 93.57 86.65 2405.70 1579.80 0.309
-diff -b -B outputdir/out_7_P5_3 refout/out_7_P5_3
-DIR1-SUM ==> SUM: 9172 99.96 62.69 6233.87 5654.13 0.327
-DIR2-SUM ==> SUM: 9201 99.64 59.98 6900.40 6331.20 0.326
 diff -b -B outputdir/out_7_E2_5 refout/out_7_E2_5
 DIR1-SUM ==> 
 DIR2-SUM ==> SUM: 9168 100.00 61.11 7029.90 6456.67 0.327

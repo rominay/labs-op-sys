@@ -637,7 +637,7 @@ bool parse_schedspec(const std::string& spec) {
         string str_quantum = p_match[1];
         quantum = stoi(str_quantum); // TO DO: check if quantum is required
         if (p_match[2].length() > 0) {
-          cout << p_match[2];
+          //cout << p_match[2];
           string str_maxprios = p_match[2];
           maxprio = stoi(str_maxprios);
             //std::cout << ", maxprio: " << p_match[2];
@@ -719,7 +719,7 @@ int main(int argc, char *argv[]){
   //inputfile = fopen("input0","r");
   //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-  maxprio=4;
+  //maxprio=3;
   int AT;
   int pid=0;
   while (1){   
@@ -756,8 +756,8 @@ int main(int argc, char *argv[]){
   */
   //scheduler = new PRIOScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //quantum = 2;
-  //maxprio=4;
+  //quantum = 5;
+  //maxprio=3;
   //verbose=true;
  // }
   simulation();
