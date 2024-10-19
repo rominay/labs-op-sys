@@ -27,6 +27,7 @@ int totalIO = 0;
 int maxprio;
 int last_event_FT;
 int totalIOTime = 0; 
+int CURRENT_TIME;
 
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
@@ -99,7 +100,6 @@ public:
   int get_time_prev_state() const {return time_prev_state;}
   int get_remaining_time() const {return TC - CPU_time;}
   // add setters
-  //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
   void set_FT(int new_FT) { FT=new_FT; }
   void set_state_ts(int new_state_ts) {state_ts=new_state_ts;}
@@ -120,9 +120,7 @@ private:
   int timestamp; 
   string oldstate;
   string newstate;
-  //int pid;
   Process* process;
-  //int process;
   process_state_t transition; 
 public:
   // constructor
@@ -133,11 +131,9 @@ public:
   }
   // getters
   int get_timestamp() const {return timestamp;}
-  //int get_pid() const {return pid;}
   string get_oldstate() const { return oldstate; }
   string get_newstate() const { return newstate; } 
   Process* get_process() const {return process;}
-  //int get_process() const {return process;} 
   process_state_t get_transition() const {return transition;}
   // setters 
   void set_timestamp(int newTimestamp){timestamp=newTimestamp;}
@@ -150,7 +146,6 @@ list<Event*> a_list;
 
 class DesLayer{
 private:
-  //list<Event*> eventQ;
 public:
   list<Event*> eventQ;
   // getters
@@ -164,7 +159,6 @@ public:
   }
   // setters
   void put_event(int AT, Process* process, process_state_t transition){
-    //cout << "AddEvent(" << AT << ":" << process->pid << ":" << stateToString(transition)  << ")" << endl; // to comment
     Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // insert in the correct position
@@ -185,6 +179,9 @@ public:
   
 };
 
+DesLayer deslayer;
+Process* current_running_process;
+
 
 // Base class for scheduling
 class BaseScheduler {
@@ -193,6 +190,7 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
+    //virtual void handle_preemption() = 0;
 };
 BaseScheduler *scheduler;
 
@@ -282,7 +280,6 @@ public:
 
 
 bool isEmpty(queue<Process*> a_queue[]){
-  //cout << "inside isEmpty" << endl;
   for (int i=0; i<maxprio; i++){
     if (a_queue[i].size() != 0) {
       return false;
@@ -295,8 +292,7 @@ class PRIOScheduler : public BaseScheduler{
 public:
 	queue<Process*>* activeQ; 
   queue<Process*>* expiredQ;
-  PRIOScheduler(){
-  //PRIOScheduler(int maxprio) {
+  PRIOScheduler(){// TO DO: pass maxprio?
     activeQ = new queue<Process*>[maxprio];
     expiredQ = new queue<Process*>[maxprio];
 
@@ -339,36 +335,111 @@ public:
   string get_type() override {return "PRIO";}
 };
 
+class EPRIOScheduler : public BaseScheduler {
+public:
+    queue<Process*>* activeQ;
+    queue<Process*>* expiredQ;
 
+    EPRIOScheduler() {
+        activeQ = new queue<Process*>[maxprio];
+        expiredQ = new queue<Process*>[maxprio];
+    }
 
-DesLayer deslayer;
-Process* current_running_process;
+    ~EPRIOScheduler() {
+        delete[] activeQ;
+    }
 
+    Process* get_next_process() override {
+        if (isEmpty(activeQ) && isEmpty(expiredQ)) {
+            return nullptr;
+        }
+        if (isEmpty(activeQ)) {
+            // Swap active and expired queues if active is empty
+            queue<Process*>* tempQ = activeQ;
+            activeQ = expiredQ;
+            expiredQ = tempQ;
+        }
+        Process* nextProcess;
+        for (int i = maxprio - 1; i >= 0; --i) { // Prioritize higher dynamic priorities
+            if (!activeQ[i].empty()) {
+                nextProcess = activeQ[i].front();
+                activeQ[i].pop();
+                return nextProcess;
+            }
+        }
+        return nullptr;
+    }
 
-//void print_scheduler(){
-// show scheduler 
-  //cout <<  "SCHED ";
-  //queue <Process*> q = scheduler->runQueue; 
-  //while (!q.empty()) {
-  //  Process* front = q.front();
-  //  cout << front->pid  << ":" << front->AT << " ";
-  //  q.pop(); // Remove the element from the queue
-  //}
-  //cout << endl;
-//};
+    void add_process(Process* p) override {
+        //handle_preemption(p, current_running_process, CURRENT_TIME);
+        if (p->dynamic_priority == -1) {
+            p->dynamic_priority = p->static_priority - 1; // Reset dynamic priority when coming from I/O
+            expiredQ[p->dynamic_priority].push(p);
+            return;
+        }
+        activeQ[p->dynamic_priority].push(p);
+    }
 
-void print_eventQ(){
-  // show event Q
-  cout << "EventQ "; 
-  for (auto ev : deslayer.eventQ){
-    Process* proc = ev->get_process();
-    cout << ev->get_timestamp() << ":" << proc->pid << " ";
-  }
-  cout << endl;
+    string get_type() override {
+        return "PREPRIO";
+    }
+
+    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
+        // Preemption condition: if READY process has a higher dynamic priority than running process
+        if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
+            !has_pending_event_for_process(runningProcess, currentTime)) {
+            
+            // Preemption happens
+            // Remove the future event for the running process
+            remove_future_event_for_process(runningProcess);
+
+            // Add a preemption event for the READY process
+            process_state_t transition = STATE_PREEMPT;
+            deslayer.put_event(currentTime, runningProcess, transition);
+            
+            // Update the state of the running process (it will be preempted)
+            runningProcess->old_state = "PREEMPTED";
+
+            // Insert the ready process back into the event queue as it will now be RUNNG
+            transition = STATE_RUNNING;
+            deslayer.put_event(currentTime, readyProcess, transition);
+
+            // Update the old state of the ready process to "RUNNG"
+            readyProcess->old_state = "RUNNG";
+        }
+    }
+
+private:
+    // Helper function to check if there is a pending event for a specific process at the current time
+    bool has_pending_event_for_process(Process* proc, int currentTime) {
+        for (auto ev : deslayer.eventQ) {
+            if (ev->get_process() == proc && ev->get_timestamp() == currentTime) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Helper function to remove future event for a process (if exists)
+    void remove_future_event_for_process(Process* proc) {
+        auto it = deslayer.eventQ.begin();
+        while (it != deslayer.eventQ.end()) {
+            if ((*it)->get_process() == proc) {
+                it = deslayer.eventQ.erase(it); // Remove the event from the queue
+            } else {
+                ++it;
+            }
+        }
+    }
 };
+
+
+
+
+
 void simulation(){
   Event* event;
-  int CURRENT_TIME;
+  //int CURRENT_TIME;
   bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
@@ -392,7 +463,10 @@ void simulation(){
 
     switch(transition){
       case STATE_READY: // TRANS_TO_READY
-        
+        //if (proc->old_state == "RUNNG" && current_running_process != nullptr) {
+        // Check if the new READY process should preempt the running process
+        //  scheduler->handle_preemption(proc, current_running_process, CURRENT_TIME);
+        //}
         if (proc->old_state=="BLOCK"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
@@ -404,15 +478,11 @@ void simulation(){
         if (proc->old_state=="RUNNG") {
           current_running_process=nullptr;
           proc->dynamic_priority-=1; // we came from preemption
-          //if (proc->dynamic_priority==-1){proc->dynamic_priority = proc->static_priority-1;}
         }
-        //current_running_process=nullptr;
         CALL_SCHEDULER = true;
-        //cout << "to add first proc" << endl;
         scheduler->add_process(proc);
-        //cout << "added first proc" << endl;
         if (verbose) {
-          if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
+          if (proc->old_state=="RUNNG"){ 
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
             cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
           }
@@ -423,28 +493,11 @@ void simulation(){
 
         proc->old_state="READY";
         break;
-      //case STATE_PREEMPT: // similar to TRANS_TO_READY
-        // must come from RUNNING (preemption)
-        // add to runqueue (no event is generated)
-      //  {
-      //  proc->dynamic_priority-=1;
-      //  if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
-      //  scheduler->add_process(proc);
-      //  CALL_SCHEDULER = true;
-        
-        //if (verbose) {
-				//	cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
-				//}
-        
-      //  proc->old_state="READY";
-        
-      //  break;
-      //  }
+      
       case STATE_RUNNING:
         {
         int CPU_burst;
         // create event for either preemption or blocking
-        //current_running_process = proc;
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
@@ -466,19 +519,12 @@ void simulation(){
 
         if (verbose) {
           string old_state = proc->old_state;
-          //if (old_state=="PREEMPT") {old_state="READY";}
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< old_state <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
-        //cout << quantum <<endl;
         if (time_to_run > quantum){ // we will not finish 
           (*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
-          //current_running_process=nullptr;
-          //if (proc == current_running_process) {
-          //current_running_process = nullptr;
-          //}
-          //proc->dynamic_priority-=1; // we will go to preemption
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
@@ -515,9 +561,7 @@ void simulation(){
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
-        //if (proc == current_running_process) {
         current_running_process = nullptr;
-        //}
         proc->old_state="BLOCK";
         break;
         }
@@ -527,10 +571,6 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
 				}
         last_event_FT = CURRENT_TIME;
-        //current_running_process = nullptr;
-        //if (proc == current_running_process) {
-        //  current_running_process = nullptr;
-        //}
         proc->old_state="DONE";
         current_running_process=nullptr;
         CALL_SCHEDULER=true;
@@ -539,23 +579,17 @@ void simulation(){
     if (CALL_SCHEDULER) {
       
       if (deslayer.get_next_event_time() == CURRENT_TIME){
-        //event = deslayer.get_event();
         continue; 
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
-        //cout << "to get next proc" << endl;
         current_running_process = scheduler->get_next_process();
-        //cout << "got next proc" << endl;
-        //print_scheduler();
         if (current_running_process == nullptr){
-          //event = deslayer.get_event();
           continue;
         }
         // create event to make this process runnable for same time
         process_state_t transition = STATE_RUNNING;
 				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
-				//current_running_process = nullptr;
       }
     }
   }
@@ -572,91 +606,9 @@ void display_help() {
     exit(0);
 }
 
-// Function to parse the scheduling specification
-bool parse_schedspec(const std::string& spec) {
-    // Case 1: FLS (no arguments)
-    if (spec == "F") {
-      scheduler = new FCFSScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
-    if (spec == "L") {
-      scheduler = new LCFSScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
-    if (spec == "S") {
-      scheduler = new SRTFScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
 
-
-    // Case 2: R<num> (e.g., R100)
-    std::regex r_regex("^R([0-9]+)$");
-    std::smatch r_match;
-    if (std::regex_match(spec, r_match, r_regex)) {
-        //std::cout << "Scheduling specification: R<num>\n";
-        //std::cout << "  num: " << r_match[1] << std::endl;
-        scheduler = new RoundRobinScheduler();
-        //quantum = 10000;
-        maxprio = 4; 
-        string str_quantum = r_match[1];
-        quantum = stoi(str_quantum);
-        //cout << "quantum: " << quantum << endl;
-        return true;
-    }
-
-    // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
-    std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
-    std::smatch p_match;
-    if (std::regex_match(spec, p_match, p_regex)) {
-        //std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
-        //std::cout << "  num: " << p_match[1];
-        PRIOScheduler* scheduler = new PRIOScheduler();
-        //cout << "check size" << scheduler->get_size() << endl;
-        string str_quantum = p_match[1];
-        quantum = stoi(str_quantum); // TO DO: check if quantum is required
-        if (p_match[2].length() > 0) {
-          //cout << p_match[2];
-          string str_maxprios = p_match[2];
-          maxprio = stoi(str_maxprios);
-            //std::cout << ", maxprio: " << p_match[2];
-        } else{
-          maxprio=4;
-        }
-        //std::cout << std::endl;
-        return true;
-
-    }
-
-    // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
-    std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
-    std::smatch e_match;
-    if (std::regex_match(spec, e_match, e_regex)) {
-        std::cout << "Scheduling specification: E<num>[:<maxprios>]\n";
-        std::cout << "  num: " << e_match[1];
-        if (e_match[2].length() > 0) {
-            std::cout << ", maxprios: " << e_match[2];
-        }
-        std::cout << std::endl;
-        return true;
-    }
-
-    // Invalid format
-    std::cerr << "Invalid scheduling specification format: " << spec << std::endl;
-    return false;
-}
- 
 
 int main(int argc, char *argv[]){
-
-  //vector<queue<int>>* activeQ = new vector<queue<int>>(3);
-
-  //activeQ->at(0).push(1);
   /*
   * Pass parameters
   */
@@ -678,18 +630,6 @@ int main(int argc, char *argv[]){
               break;
       }
   }
-  //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  parse_schedspec(schedspec);
-  //schedspec="P2";
-  
-
-  
-  //parse_schedspec(schedspec);
-  // Ensure that the required input and random files are provided
-  //if (optind + 2 > argc) {
-  //    std::cerr << "Error: Missing inputfile or randfile.\n";
-  //    display_help();
-  //}
 
   char* input_file = argv[optind];
   string rand_file = argv[optind + 1];
@@ -712,25 +652,21 @@ int main(int argc, char *argv[]){
   //inputfile = fopen("input0","r");
   //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-  //maxprio=4;
   //schedspec="P2";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
     maxprio = 4; 
-    //return true;
   }
   if (schedspec == "L") {
     scheduler = new LCFSScheduler();
     quantum = 10000;
     maxprio = 4; 
-    //return true;
   }
   if (schedspec == "S") {
     scheduler = new SRTFScheduler();
     quantum = 10000;
     maxprio = 4; 
-    //return true;
   }
 
 
@@ -738,52 +674,40 @@ int main(int argc, char *argv[]){
   std::regex r_regex("^R([0-9]+)$");
   std::smatch r_match;
   if (std::regex_match(schedspec, r_match, r_regex)) {
-      //std::cout << "Scheduling specification: R<num>\n";
-      //std::cout << "  num: " << r_match[1] << std::endl;
       scheduler = new RoundRobinScheduler();
-      //quantum = 10000;
       maxprio = 4; 
       string str_quantum = r_match[1];
       quantum = stoi(str_quantum);
-      //cout << "quantum: " << quantum << endl;
-      //return true;
   }
 
   // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
   std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
   std::smatch p_match;
   if (std::regex_match(schedspec, p_match, p_regex)) {
-      //std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
-      //std::cout << "  num: " << p_match[1];
-      //scheduler = new PRIOScheduler();
-      //cout << "check size" << scheduler->get_size() << endl;
       string str_quantum = p_match[1];
       quantum = stoi(str_quantum); // TO DO: check if quantum is required
       if (p_match[2].length() > 0) {
-        //cout << p_match[2];
         string str_maxprios = p_match[2];
         maxprio = stoi(str_maxprios);
-          //std::cout << ", maxprio: " << p_match[2];
       } else{
         maxprio=4;
       }
       scheduler = new PRIOScheduler();
-      //std::cout << std::endl;
-      //return true;
-
   }
 
   // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
   std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
   std::smatch e_match;
   if (std::regex_match(schedspec, e_match, e_regex)) {
-      std::cout << "Scheduling specification: E<num>[:<maxprios>]\n";
-      std::cout << "  num: " << e_match[1];
+      string str_quantum = e_match[1];
+      quantum = stoi(str_quantum); 
       if (e_match[2].length() > 0) {
-          std::cout << ", maxprios: " << e_match[2];
+        string str_maxprios = e_match[2];
+        maxprio = stoi(str_maxprios);
+      } else{
+        maxprio=4;
       }
-      std::cout << std::endl;
-      //return true;
+      scheduler = new EPRIOScheduler();
   }
   
   
@@ -821,24 +745,16 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  
 
-  //scheduler = new PRIOScheduler();
-  //cout << "check size" << scheduler->get_size() << endl;
-  //if (scheduler->get_type() == "FCFS"){
-  //quantum = 2;
-  //maxprio=3;
   //verbose=true;
- // }
-  //cout << "to start sim" << endl;
+
   simulation();
   /*
   * Output
   */ 
-  //cout << "finished sim" << endl;
   string type = scheduler->get_type();
   cout<<type;
-  if (type == "RR" || type == "PRIO") { 
+  if (type == "RR" || type == "PRIO" || type == "PREPRIO") { 
     cout << " " << quantum;
   }
   cout << endl;
@@ -860,7 +776,6 @@ int main(int argc, char *argv[]){
   /*
   * Summary information
   */
-  //printf(last_event_FT);
   double utilization_CPU = 100.0*(totalCPU/(double)last_event_FT);
 	double utilization_IO = 100.0*((totalIOTime)/(double)last_event_FT);
 
