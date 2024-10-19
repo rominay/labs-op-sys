@@ -7,6 +7,7 @@
 #include <unistd.h> // For getopt
 #include <cstdlib>  // For exit()
 #include <regex>
+#include <vector>
 
 using namespace std;
 
@@ -26,6 +27,7 @@ int totalIO = 0;
 int maxprio;
 int last_event_FT;
 int totalIOTime = 0; 
+
 
 typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
 
@@ -187,27 +189,23 @@ public:
 // Base class for scheduling
 class BaseScheduler {
 public:
-    //queue<Process*> runQueue;
-    //int quantum;
     virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
-    //virtual int get_quantum() = 0;
-    //virtual bool test_preempt(Process* activated_process);
 };
 BaseScheduler *scheduler;
+
+
 // FCFS Scheduler 
 class FCFSScheduler : public BaseScheduler {
 private:
     queue<Process*> runQueue; 
 
 public:
-    //queue<Process*> runQueue;
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
-            //cout << "No processes in the queue." << endl;
             return NULL; 
         }
         Process* nextProcess = runQueue.front();  
@@ -279,10 +277,9 @@ public:
   void add_process(Process *p) override {
 		runQueue.push(p);
 	}
-  //int get_quantum() override {
-  //  return quantum;
-  //}
 };
+
+
 
 bool isEmpty(queue<Process*> a_queue[]){
   //cout << "inside isEmpty" << endl;
@@ -295,38 +292,30 @@ bool isEmpty(queue<Process*> a_queue[]){
 };
 
 class PRIOScheduler : public BaseScheduler{
-	queue<Process*>* activeQ = new queue<Process*>[maxprio];
-  queue<Process*>* expiredQ = new queue<Process*>[maxprio];
-  //queue<Process*> activeQ0;
-  //queue<Process*> expiredQ0;
-
-  //queue<Process*> activeQ1;
-  //queue<Process*> expiredQ1;
-
-  //queue<Process*> activeQ2;
-  //queue<Process*> expiredQ2;
-
-  //queue<Process*> activeQ3;
-  //queue<Process*> expiredQ3;
 public:
-  string get_type() override {return "PRIO";}
+	queue<Process*>* activeQ; 
+  queue<Process*>* expiredQ;
+  PRIOScheduler(){
+  //PRIOScheduler(int maxprio) {
+    activeQ = new queue<Process*>[maxprio];
+    expiredQ = new queue<Process*>[maxprio];
+
+  }
+  ~PRIOScheduler() {
+    delete activeQ;
+  }
+  
+
 
 	Process* get_next_process() override {
-		//if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty() 
-    //    && expiredQ0.empty() && expiredQ1.empty() && expiredQ2.empty() && expiredQ3.empty()){ //all are empty
     if (isEmpty(activeQ) && isEmpty(expiredQ)){
       return nullptr;
     }
     if (isEmpty(activeQ)){
-    //if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty()){ //all are empty
       // we swap the pointers
       queue<Process*>* tempQ = activeQ;
       activeQ = expiredQ;
       expiredQ = tempQ;
-      //activeQ0.swap(expiredQ0);
-      //activeQ1.swap(expiredQ1);
-      //activeQ2.swap(expiredQ2);
-      //activeQ3.swap(expiredQ3);
     }
     Process* nextProcess;
     for (int i=maxprio-1; i>=0; --i){ // we go over higher priority to less priority
@@ -336,55 +325,20 @@ public:
         return nextProcess;
       }
     }
-    //if (!activeQ3.empty()){
-    //  nextProcess = activeQ3.front();
-    //  activeQ3.pop();
-    //} else if (!activeQ2.empty()){
-    //  nextProcess = activeQ2.front();
-    //  activeQ2.pop();
-    //} else if (!activeQ1.empty()){
-    //  nextProcess = activeQ1.front();
-    //  activeQ1.pop();
-    //} else if (!activeQ0.empty()){
-    //  nextProcess = activeQ0.front();
-    //  activeQ0.pop();
-    //}
-    //return nextProcess;
   }
 
   void add_process(Process *p) override {
-    //cout << "inside sched" << endl;
     if (p->dynamic_priority == -1){
-      //cout << "inside loop" << endl;
       p->dynamic_priority = p->static_priority-1; // it is reset
       expiredQ[p->dynamic_priority].push(p);
       return;
       
-      //if (p->dynamic_priority==0) {
-      //  expiredQ0.push(p);
-      //  return;
-      //}
-      //if (p->dynamic_priority==1) {
-      //  expiredQ1.push(p);
-      //  return;
-      //}
-      //if (p->dynamic_priority==2) {
-      //  expiredQ2.push(p);
-      //  return;
-      //}
-      //if (p->dynamic_priority==3) {
-      //  expiredQ3.push(p);
-      //  return;
-      //}
     } 
     activeQ[p->dynamic_priority].push(p);
-    //if (p->dynamic_priority == 0) {activeQ0.push(p);}
-    //else if (p->dynamic_priority == 1) {activeQ1.push(p);}
-    //else if (p->dynamic_priority == 2) {activeQ2.push(p);}
-    //else if (p->dynamic_priority == 3) {activeQ3.push(p);}
 	}
-  
+  string get_type() override {return "PRIO";}
 };
+
 
 
 DesLayer deslayer;
@@ -418,6 +372,7 @@ void simulation(){
   bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
+
 
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
@@ -661,7 +616,8 @@ bool parse_schedspec(const std::string& spec) {
     if (std::regex_match(spec, p_match, p_regex)) {
         //std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
         //std::cout << "  num: " << p_match[1];
-        scheduler = new PRIOScheduler();
+        PRIOScheduler* scheduler = new PRIOScheduler();
+        //cout << "check size" << scheduler->get_size() << endl;
         string str_quantum = p_match[1];
         quantum = stoi(str_quantum); // TO DO: check if quantum is required
         if (p_match[2].length() > 0) {
@@ -697,6 +653,10 @@ bool parse_schedspec(const std::string& spec) {
  
 
 int main(int argc, char *argv[]){
+
+  //vector<queue<int>>* activeQ = new vector<queue<int>>(3);
+
+  //activeQ->at(0).push(1);
   /*
   * Pass parameters
   */
@@ -720,11 +680,16 @@ int main(int argc, char *argv[]){
   }
   //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
   parse_schedspec(schedspec);
+  //schedspec="P2";
+  
+
+  
+  //parse_schedspec(schedspec);
   // Ensure that the required input and random files are provided
-  if (optind + 2 > argc) {
-      std::cerr << "Error: Missing inputfile or randfile.\n";
-      display_help();
-  }
+  //if (optind + 2 > argc) {
+  //    std::cerr << "Error: Missing inputfile or randfile.\n";
+  //    display_help();
+  //}
 
   char* input_file = argv[optind];
   string rand_file = argv[optind + 1];
@@ -748,6 +713,80 @@ int main(int argc, char *argv[]){
   //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
   //maxprio=4;
+  //schedspec="P2";
+  if (schedspec == "F") {
+    scheduler = new FCFSScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+    //return true;
+  }
+  if (schedspec == "L") {
+    scheduler = new LCFSScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+    //return true;
+  }
+  if (schedspec == "S") {
+    scheduler = new SRTFScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+    //return true;
+  }
+
+
+  // Case 2: R<num> (e.g., R100)
+  std::regex r_regex("^R([0-9]+)$");
+  std::smatch r_match;
+  if (std::regex_match(schedspec, r_match, r_regex)) {
+      //std::cout << "Scheduling specification: R<num>\n";
+      //std::cout << "  num: " << r_match[1] << std::endl;
+      scheduler = new RoundRobinScheduler();
+      //quantum = 10000;
+      maxprio = 4; 
+      string str_quantum = r_match[1];
+      quantum = stoi(str_quantum);
+      //cout << "quantum: " << quantum << endl;
+      //return true;
+  }
+
+  // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
+  std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
+  std::smatch p_match;
+  if (std::regex_match(schedspec, p_match, p_regex)) {
+      //std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
+      //std::cout << "  num: " << p_match[1];
+      //scheduler = new PRIOScheduler();
+      //cout << "check size" << scheduler->get_size() << endl;
+      string str_quantum = p_match[1];
+      quantum = stoi(str_quantum); // TO DO: check if quantum is required
+      if (p_match[2].length() > 0) {
+        //cout << p_match[2];
+        string str_maxprios = p_match[2];
+        maxprio = stoi(str_maxprios);
+          //std::cout << ", maxprio: " << p_match[2];
+      } else{
+        maxprio=4;
+      }
+      scheduler = new PRIOScheduler();
+      //std::cout << std::endl;
+      //return true;
+
+  }
+
+  // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
+  std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
+  std::smatch e_match;
+  if (std::regex_match(schedspec, e_match, e_regex)) {
+      std::cout << "Scheduling specification: E<num>[:<maxprios>]\n";
+      std::cout << "  num: " << e_match[1];
+      if (e_match[2].length() > 0) {
+          std::cout << ", maxprios: " << e_match[2];
+      }
+      std::cout << std::endl;
+      //return true;
+  }
+  
+  
   int AT;
   int pid=0;
   while (1){   
@@ -782,7 +821,10 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  scheduler = new PRIOScheduler();
+  
+
+  //scheduler = new PRIOScheduler();
+  //cout << "check size" << scheduler->get_size() << endl;
   //if (scheduler->get_type() == "FCFS"){
   //quantum = 2;
   //maxprio=3;
