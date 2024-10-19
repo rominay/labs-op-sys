@@ -284,80 +284,104 @@ public:
   //}
 };
 
-bool isEmpty(deque<Process*>* a_deque){
-  for (size_t i=0; i<maxprio; i++){
-    if (a_deque[i].size() != 0) {return false;}
+bool isEmpty(queue<Process*> a_queue[]){
+  //cout << "inside isEmpty" << endl;
+  for (int i=0; i<maxprio; i++){
+    if (a_queue[i].size() != 0) {
+      return false;
+    }
   }
   return true;
 };
 
 class PRIOScheduler : public BaseScheduler{
-	queue<Process*> activeQ0;
-  queue<Process*> expiredQ0;
+	queue<Process*>* activeQ = new queue<Process*>[maxprio];
+  queue<Process*>* expiredQ = new queue<Process*>[maxprio];
+  //queue<Process*> activeQ0;
+  //queue<Process*> expiredQ0;
 
-  queue<Process*> activeQ1;
-  queue<Process*> expiredQ1;
+  //queue<Process*> activeQ1;
+  //queue<Process*> expiredQ1;
 
-  queue<Process*> activeQ2;
-  queue<Process*> expiredQ2;
+  //queue<Process*> activeQ2;
+  //queue<Process*> expiredQ2;
 
-  queue<Process*> activeQ3;
-  queue<Process*> expiredQ3;
+  //queue<Process*> activeQ3;
+  //queue<Process*> expiredQ3;
 public:
   string get_type() override {return "PRIO";}
 
 	Process* get_next_process() override {
-		if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty() 
-        && expiredQ0.empty() && expiredQ1.empty() && expiredQ2.empty() && expiredQ3.empty()){ //all are empty
+		//if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty() 
+    //    && expiredQ0.empty() && expiredQ1.empty() && expiredQ2.empty() && expiredQ3.empty()){ //all are empty
+    if (isEmpty(activeQ) && isEmpty(expiredQ)){
       return nullptr;
     }
-    if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty()){ //all are empty
-      activeQ0.swap(expiredQ0);
-      activeQ1.swap(expiredQ1);
-      activeQ2.swap(expiredQ2);
-      activeQ3.swap(expiredQ3);
+    if (isEmpty(activeQ)){
+    //if (activeQ0.empty() && activeQ1.empty() && activeQ2.empty() && activeQ3.empty()){ //all are empty
+      // we swap the pointers
+      queue<Process*>* tempQ = activeQ;
+      activeQ = expiredQ;
+      expiredQ = tempQ;
+      //activeQ0.swap(expiredQ0);
+      //activeQ1.swap(expiredQ1);
+      //activeQ2.swap(expiredQ2);
+      //activeQ3.swap(expiredQ3);
     }
     Process* nextProcess;
-    if (!activeQ3.empty()){
-      nextProcess = activeQ3.front();
-      activeQ3.pop();
-    } else if (!activeQ2.empty()){
-      nextProcess = activeQ2.front();
-      activeQ2.pop();
-    } else if (!activeQ1.empty()){
-      nextProcess = activeQ1.front();
-      activeQ1.pop();
-    } else if (!activeQ0.empty()){
-      nextProcess = activeQ0.front();
-      activeQ0.pop();
+    for (int i=maxprio-1; i>=0; --i){ // we go over higher priority to less priority
+      if (!activeQ[i].empty()) {
+        nextProcess = activeQ[i].front();
+        activeQ[i].pop();
+        return nextProcess;
+      }
     }
-    return nextProcess;
+    //if (!activeQ3.empty()){
+    //  nextProcess = activeQ3.front();
+    //  activeQ3.pop();
+    //} else if (!activeQ2.empty()){
+    //  nextProcess = activeQ2.front();
+    //  activeQ2.pop();
+    //} else if (!activeQ1.empty()){
+    //  nextProcess = activeQ1.front();
+    //  activeQ1.pop();
+    //} else if (!activeQ0.empty()){
+    //  nextProcess = activeQ0.front();
+    //  activeQ0.pop();
+    //}
+    //return nextProcess;
   }
 
   void add_process(Process *p) override {
+    //cout << "inside sched" << endl;
     if (p->dynamic_priority == -1){
+      //cout << "inside loop" << endl;
       p->dynamic_priority = p->static_priority-1; // it is reset
-      if (p->dynamic_priority==0) {
-        expiredQ0.push(p);
-        return;
-      }
-      if (p->dynamic_priority==1) {
-        expiredQ1.push(p);
-        return;
-      }
-      if (p->dynamic_priority==2) {
-        expiredQ2.push(p);
-        return;
-      }
-      if (p->dynamic_priority==3) {
-        expiredQ3.push(p);
-        return;
-      }
+      expiredQ[p->dynamic_priority].push(p);
+      return;
+      
+      //if (p->dynamic_priority==0) {
+      //  expiredQ0.push(p);
+      //  return;
+      //}
+      //if (p->dynamic_priority==1) {
+      //  expiredQ1.push(p);
+      //  return;
+      //}
+      //if (p->dynamic_priority==2) {
+      //  expiredQ2.push(p);
+      //  return;
+      //}
+      //if (p->dynamic_priority==3) {
+      //  expiredQ3.push(p);
+      //  return;
+      //}
     } 
-    if (p->dynamic_priority == 0) {activeQ0.push(p);}
-    else if (p->dynamic_priority == 1) {activeQ1.push(p);}
-    else if (p->dynamic_priority == 2) {activeQ2.push(p);}
-    else if (p->dynamic_priority == 3) {activeQ3.push(p);}
+    activeQ[p->dynamic_priority].push(p);
+    //if (p->dynamic_priority == 0) {activeQ0.push(p);}
+    //else if (p->dynamic_priority == 1) {activeQ1.push(p);}
+    //else if (p->dynamic_priority == 2) {activeQ2.push(p);}
+    //else if (p->dynamic_priority == 3) {activeQ3.push(p);}
 	}
   
 };
@@ -429,7 +453,9 @@ void simulation(){
         }
         //current_running_process=nullptr;
         CALL_SCHEDULER = true;
+        //cout << "to add first proc" << endl;
         scheduler->add_process(proc);
+        //cout << "added first proc" << endl;
         if (verbose) {
           if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
@@ -563,7 +589,9 @@ void simulation(){
       }
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
+        //cout << "to get next proc" << endl;
         current_running_process = scheduler->get_next_process();
+        //cout << "got next proc" << endl;
         //print_scheduler();
         if (current_running_process == nullptr){
           //event = deslayer.get_event();
@@ -719,7 +747,7 @@ int main(int argc, char *argv[]){
   //inputfile = fopen("input0","r");
   //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-  //maxprio=3;
+  //maxprio=4;
   int AT;
   int pid=0;
   while (1){   
@@ -754,16 +782,18 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new PRIOScheduler();
+  scheduler = new PRIOScheduler();
   //if (scheduler->get_type() == "FCFS"){
-  //quantum = 5;
+  //quantum = 2;
   //maxprio=3;
   //verbose=true;
  // }
+  //cout << "to start sim" << endl;
   simulation();
   /*
   * Output
   */ 
+  //cout << "finished sim" << endl;
   string type = scheduler->get_type();
   cout<<type;
   if (type == "RR" || type == "PRIO") { 
