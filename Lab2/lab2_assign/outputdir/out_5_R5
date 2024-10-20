@@ -259,7 +259,7 @@
 607 3 6: READY -> RUNNG cb=3 rem=3 prio=2
 608 0 26: BLOCK -> READY
 609 2 2: BLOCK -> READY
-610 3 3: DONE
+610 3 0: DONE
 610 0 2: READY -> RUNNG cb=32 rem=208 prio=1
 615 0 5: RUNNG -> READY cb=27 rem=203 prio=1
 615 2 6: READY -> RUNNG cb=17 rem=115 prio=1
@@ -449,7 +449,7 @@
 1022 0 3: RUNNG -> BLOCK ib=1 rem=70
 1022 2 5: READY -> RUNNG cb=2 rem=2 prio=1
 1023 0 1: BLOCK -> READY
-1024 2 2: DONE
+1024 2 0: DONE
 1024 1 5: READY -> RUNNG cb=8 rem=10 prio=1
 1029 1 5: RUNNG -> READY cb=3 rem=5 prio=1
 1029 0 6: READY -> RUNNG cb=36 rem=70 prio=1
@@ -480,7 +480,7 @@
 1088 1 25: BLOCK -> READY
 1092 0 5: RUNNG -> READY cb=24 rem=24 prio=0
 1092 1 4: READY -> RUNNG cb=1 rem=1 prio=3
-1093 1 1: DONE
+1093 1 0: DONE
 1093 0 1: READY -> RUNNG cb=24 rem=24 prio=-1
 1098 0 5: RUNNG -> READY cb=19 rem=19 prio=-1
 1098 0 0: READY -> RUNNG cb=19 rem=19 prio=-2
@@ -490,7 +490,7 @@
 1108 0 0: READY -> RUNNG cb=9 rem=9 prio=-4
 1113 0 5: RUNNG -> READY cb=4 rem=4 prio=-4
 1113 0 0: READY -> RUNNG cb=4 rem=4 prio=-5
-1117 0 4: DONE
+1117 0 0: DONE
 RR 5
 0000:    0  400   50   50 2 |  1117  1117   348   369
 0001:  101  300   41   40 4 |  1093   992   317   375

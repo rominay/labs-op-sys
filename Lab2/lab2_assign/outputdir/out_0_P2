@@ -125,7 +125,7 @@
 198 0 0: READY -> RUNNG cb=3 rem=3 prio=0
 200 0 2: RUNNG -> READY cb=1 rem=1 prio=0
 200 0 0: READY -> RUNNG cb=1 rem=1 prio=1
-201 0 1: DONE
+201 0 0: DONE
 500 1 0: CREATED -> READY
 500 1 0: READY -> RUNNG cb=8 rem=100 prio=3
 502 1 2: RUNNG -> READY cb=6 rem=98 prio=3
@@ -237,7 +237,7 @@
 624 1 0: READY -> RUNNG cb=3 rem=3 prio=1
 626 1 2: RUNNG -> READY cb=1 rem=1 prio=1
 626 1 0: READY -> RUNNG cb=1 rem=1 prio=0
-627 1 1: DONE
+627 1 0: DONE
 PRIO 2
 0000:    0  100   10   10 2 |   201   201   101     0
 0001:  500  100   20   10 4 |   627   127    27     0

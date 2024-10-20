@@ -39,6 +39,7 @@
 101 1 0: CREATED -> READY
 101 1 0: READY -> RUNNG cb=35 rem=300 prio=3
 103 0 9: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
 105 1 4: RUNNG -> READY cb=31 rem=296 prio=3
 105 1 0: READY -> RUNNG cb=31 rem=296 prio=2
 109 1 4: RUNNG -> READY cb=27 rem=292 prio=2
@@ -65,591 +66,585 @@
 185 0 49: BLOCK -> READY
 185 0 0: READY -> RUNNG cb=31 rem=322 prio=1
 186 1 39: BLOCK -> READY
-186 0 1: RUNNG -> READY cb=1 rem=319 prio=1
+--> PrioPreempt Cond1=1Cond2=1-->YES
+186 0 1: RUNNG -> READY cb=27 rem=321 prio=1
 186 1 0: READY -> RUNNG cb=11 rem=265 prio=3
 190 1 4: RUNNG -> READY cb=7 rem=261 prio=3
 190 1 0: READY -> RUNNG cb=7 rem=261 prio=2
 194 1 4: RUNNG -> READY cb=3 rem=257 prio=2
 194 1 0: READY -> RUNNG cb=3 rem=257 prio=1
 197 1 3: RUNNG -> BLOCK ib=36 rem=254
-197 0 11: READY -> RUNNG cb=1 rem=319 prio=0
-198 0 1: RUNNG -> BLOCK ib=32 rem=318
+197 0 11: READY -> RUNNG cb=27 rem=321 prio=0
+201 0 4: RUNNG -> READY cb=23 rem=317 prio=0
+201 0 0: READY -> RUNNG cb=23 rem=317 prio=1
 202 2 0: CREATED -> READY
-202 2 0: READY -> RUNNG cb=18 rem=200 prio=1
-206 2 4: RUNNG -> READY cb=14 rem=196 prio=1
-206 2 0: READY -> RUNNG cb=14 rem=196 prio=0
-210 2 4: RUNNG -> READY cb=10 rem=192 prio=0
-210 2 0: READY -> RUNNG cb=10 rem=192 prio=1
-214 2 4: RUNNG -> READY cb=6 rem=188 prio=1
-214 2 0: READY -> RUNNG cb=6 rem=188 prio=0
-218 2 4: RUNNG -> READY cb=2 rem=184 prio=0
-218 2 0: READY -> RUNNG cb=2 rem=184 prio=1
-220 2 2: RUNNG -> BLOCK ib=34 rem=182
-230 0 32: BLOCK -> READY
-230 0 0: READY -> RUNNG cb=22 rem=318 prio=1
+--> PrioPreempt Cond1=0Cond2=1-->NO
+205 0 4: RUNNG -> READY cb=19 rem=313 prio=1
+205 2 3: READY -> RUNNG cb=2 rem=200 prio=1
+207 2 2: RUNNG -> BLOCK ib=32 rem=198
+207 0 2: READY -> RUNNG cb=19 rem=313 prio=0
+211 0 4: RUNNG -> READY cb=15 rem=309 prio=0
+211 0 0: READY -> RUNNG cb=15 rem=309 prio=1
+215 0 4: RUNNG -> READY cb=11 rem=305 prio=1
+215 0 0: READY -> RUNNG cb=11 rem=305 prio=0
+219 0 4: RUNNG -> READY cb=7 rem=301 prio=0
+219 0 0: READY -> RUNNG cb=7 rem=301 prio=1
+223 0 4: RUNNG -> READY cb=3 rem=297 prio=1
+223 0 0: READY -> RUNNG cb=3 rem=297 prio=0
+226 0 3: RUNNG -> BLOCK ib=34 rem=294
 233 1 36: BLOCK -> READY
-233 0 3: RUNNG -> READY cb=3 rem=317 prio=1
-233 1 0: READY -> RUNNG cb=36 rem=254 prio=3
-237 1 4: RUNNG -> READY cb=32 rem=250 prio=3
-237 1 0: READY -> RUNNG cb=32 rem=250 prio=2
-241 1 4: RUNNG -> READY cb=28 rem=246 prio=2
-241 1 0: READY -> RUNNG cb=28 rem=246 prio=1
-245 1 4: RUNNG -> READY cb=24 rem=242 prio=1
-245 0 12: READY -> RUNNG cb=3 rem=317 prio=0
-248 0 3: RUNNG -> BLOCK ib=49 rem=314
-248 1 3: READY -> RUNNG cb=24 rem=242 prio=0
-252 1 4: RUNNG -> READY cb=20 rem=238 prio=0
-252 1 0: READY -> RUNNG cb=20 rem=238 prio=3
-254 2 34: BLOCK -> READY
-256 1 4: RUNNG -> READY cb=16 rem=234 prio=3
-256 1 0: READY -> RUNNG cb=16 rem=234 prio=2
-260 1 4: RUNNG -> READY cb=12 rem=230 prio=2
-260 2 6: READY -> RUNNG cb=17 rem=182 prio=1
-264 2 4: RUNNG -> READY cb=13 rem=178 prio=1
-264 1 4: READY -> RUNNG cb=12 rem=230 prio=1
-268 1 4: RUNNG -> READY cb=8 rem=226 prio=1
-268 2 4: READY -> RUNNG cb=13 rem=178 prio=0
-272 2 4: RUNNG -> READY cb=9 rem=174 prio=0
-272 1 4: READY -> RUNNG cb=8 rem=226 prio=0
-276 1 4: RUNNG -> READY cb=4 rem=222 prio=0
-276 1 0: READY -> RUNNG cb=4 rem=222 prio=3
-280 1 4: RUNNG -> BLOCK ib=39 rem=218
-280 2 8: READY -> RUNNG cb=9 rem=174 prio=1
-284 2 4: RUNNG -> READY cb=5 rem=170 prio=1
-284 2 0: READY -> RUNNG cb=5 rem=170 prio=0
-288 2 4: RUNNG -> READY cb=1 rem=166 prio=0
-288 2 0: READY -> RUNNG cb=1 rem=166 prio=1
-289 2 1: RUNNG -> BLOCK ib=20 rem=165
-297 0 49: BLOCK -> READY
-297 0 0: READY -> RUNNG cb=2 rem=314 prio=1
-299 0 2: RUNNG -> BLOCK ib=47 rem=312
+233 1 0: READY -> RUNNG cb=22 rem=254 prio=3
+237 1 4: RUNNG -> READY cb=18 rem=250 prio=3
+237 1 0: READY -> RUNNG cb=18 rem=250 prio=2
+239 2 32: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+241 1 4: RUNNG -> READY cb=14 rem=246 prio=2
+241 2 2: READY -> RUNNG cb=20 rem=198 prio=1
+245 2 4: RUNNG -> READY cb=16 rem=194 prio=1
+245 1 4: READY -> RUNNG cb=14 rem=246 prio=1
+249 1 4: RUNNG -> READY cb=10 rem=242 prio=1
+249 2 4: READY -> RUNNG cb=16 rem=194 prio=0
+253 2 4: RUNNG -> READY cb=12 rem=190 prio=0
+253 1 4: READY -> RUNNG cb=10 rem=242 prio=0
+257 1 4: RUNNG -> READY cb=6 rem=238 prio=0
+257 1 0: READY -> RUNNG cb=6 rem=238 prio=3
+260 0 34: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+261 1 4: RUNNG -> READY cb=2 rem=234 prio=3
+261 1 0: READY -> RUNNG cb=2 rem=234 prio=2
+263 1 2: RUNNG -> BLOCK ib=29 rem=232
+263 2 10: READY -> RUNNG cb=12 rem=190 prio=1
+267 2 4: RUNNG -> READY cb=8 rem=186 prio=1
+267 0 7: READY -> RUNNG cb=5 rem=294 prio=1
+271 0 4: RUNNG -> READY cb=1 rem=290 prio=1
+271 2 4: READY -> RUNNG cb=8 rem=186 prio=0
+275 2 4: RUNNG -> READY cb=4 rem=182 prio=0
+275 0 4: READY -> RUNNG cb=1 rem=290 prio=0
+276 0 1: RUNNG -> BLOCK ib=19 rem=289
+276 2 1: READY -> RUNNG cb=4 rem=182 prio=1
+280 2 4: RUNNG -> BLOCK ib=20 rem=178
+292 1 29: BLOCK -> READY
+292 1 0: READY -> RUNNG cb=32 rem=232 prio=3
+295 0 19: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+296 1 4: RUNNG -> READY cb=28 rem=228 prio=3
+296 1 0: READY -> RUNNG cb=28 rem=228 prio=2
+300 2 20: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=0-->NO
+300 1 4: RUNNG -> READY cb=24 rem=224 prio=2
+300 0 5: READY -> RUNNG cb=47 rem=289 prio=1
 303 3 0: CREATED -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+303 0 3: RUNNG -> READY cb=43 rem=286 prio=1
 303 3 0: READY -> RUNNG cb=13 rem=100 prio=3
 307 3 4: RUNNG -> READY cb=9 rem=96 prio=3
 307 3 0: READY -> RUNNG cb=9 rem=96 prio=2
-309 2 20: BLOCK -> READY
 311 3 4: RUNNG -> READY cb=5 rem=92 prio=2
-311 2 2: READY -> RUNNG cb=5 rem=165 prio=1
-315 2 4: RUNNG -> READY cb=1 rem=161 prio=1
-315 3 4: READY -> RUNNG cb=5 rem=92 prio=1
-319 1 39: BLOCK -> READY
-319 3 4: RUNNG -> READY cb=1 rem=88 prio=1
-319 1 0: READY -> RUNNG cb=21 rem=218 prio=3
-323 1 4: RUNNG -> READY cb=17 rem=214 prio=3
-323 1 0: READY -> RUNNG cb=17 rem=214 prio=2
-327 1 4: RUNNG -> READY cb=13 rem=210 prio=2
-327 1 0: READY -> RUNNG cb=13 rem=210 prio=1
-331 1 4: RUNNG -> READY cb=9 rem=206 prio=1
-331 2 16: READY -> RUNNG cb=1 rem=161 prio=0
-332 2 1: RUNNG -> BLOCK ib=32 rem=160
-332 3 13: READY -> RUNNG cb=1 rem=88 prio=0
+311 2 11: READY -> RUNNG cb=5 rem=178 prio=1
+315 2 4: RUNNG -> READY cb=1 rem=174 prio=1
+315 1 15: READY -> RUNNG cb=24 rem=224 prio=1
+319 1 4: RUNNG -> READY cb=20 rem=220 prio=1
+319 3 8: READY -> RUNNG cb=5 rem=92 prio=1
+323 3 4: RUNNG -> READY cb=1 rem=88 prio=1
+323 0 20: READY -> RUNNG cb=43 rem=286 prio=0
+327 0 4: RUNNG -> READY cb=39 rem=282 prio=0
+327 2 12: READY -> RUNNG cb=1 rem=174 prio=0
+328 2 1: RUNNG -> BLOCK ib=27 rem=173
+328 1 9: READY -> RUNNG cb=20 rem=220 prio=0
+332 1 4: RUNNG -> READY cb=16 rem=216 prio=0
+332 3 9: READY -> RUNNG cb=1 rem=88 prio=0
 333 3 1: RUNNG -> BLOCK ib=2 rem=87
-333 1 2: READY -> RUNNG cb=9 rem=206 prio=0
+333 1 1: READY -> RUNNG cb=16 rem=216 prio=3
 335 3 2: BLOCK -> READY
-335 1 2: RUNNG -> READY cb=2 rem=204 prio=0
-335 3 0: READY -> RUNNG cb=6 rem=87 prio=3
-339 3 4: RUNNG -> READY cb=2 rem=83 prio=3
-339 3 0: READY -> RUNNG cb=2 rem=83 prio=2
-341 3 2: RUNNG -> BLOCK ib=1 rem=81
-341 1 6: READY -> RUNNG cb=2 rem=204 prio=3
-342 3 1: BLOCK -> READY
-343 1 2: RUNNG -> BLOCK ib=19 rem=202
-343 3 1: READY -> RUNNG cb=17 rem=81 prio=3
-346 0 47: BLOCK -> READY
-347 3 4: RUNNG -> READY cb=13 rem=77 prio=3
-347 3 0: READY -> RUNNG cb=13 rem=77 prio=2
-351 3 4: RUNNG -> READY cb=9 rem=73 prio=2
-351 0 5: READY -> RUNNG cb=10 rem=312 prio=1
-355 0 4: RUNNG -> READY cb=6 rem=308 prio=1
-355 3 4: READY -> RUNNG cb=9 rem=73 prio=1
-359 3 4: RUNNG -> READY cb=5 rem=69 prio=1
-359 0 4: READY -> RUNNG cb=6 rem=308 prio=0
-362 1 19: BLOCK -> READY
-362 0 3: RUNNG -> READY cb=3 rem=307 prio=0
-362 1 0: READY -> RUNNG cb=37 rem=202 prio=3
-364 2 32: BLOCK -> READY
-366 1 4: RUNNG -> READY cb=33 rem=198 prio=3
-366 1 0: READY -> RUNNG cb=33 rem=198 prio=2
-370 1 4: RUNNG -> READY cb=29 rem=194 prio=2
-370 2 6: READY -> RUNNG cb=28 rem=160 prio=1
-374 2 4: RUNNG -> READY cb=24 rem=156 prio=1
-374 1 4: READY -> RUNNG cb=29 rem=194 prio=1
-378 1 4: RUNNG -> READY cb=25 rem=190 prio=1
-378 3 19: READY -> RUNNG cb=5 rem=69 prio=0
-382 3 4: RUNNG -> READY cb=1 rem=65 prio=0
-382 2 8: READY -> RUNNG cb=24 rem=156 prio=0
-386 2 4: RUNNG -> READY cb=20 rem=152 prio=0
-386 1 8: READY -> RUNNG cb=25 rem=190 prio=0
-390 1 4: RUNNG -> READY cb=21 rem=186 prio=0
-390 3 8: READY -> RUNNG cb=1 rem=65 prio=3
-391 3 1: RUNNG -> BLOCK ib=10 rem=64
-391 1 1: READY -> RUNNG cb=21 rem=186 prio=3
-395 1 4: RUNNG -> READY cb=17 rem=182 prio=3
-395 1 0: READY -> RUNNG cb=17 rem=182 prio=2
-399 1 4: RUNNG -> READY cb=13 rem=178 prio=2
-399 0 37: READY -> RUNNG cb=3 rem=307 prio=1
-401 3 10: BLOCK -> READY
-401 0 2: RUNNG -> READY cb=2 rem=306 prio=1
-401 3 0: READY -> RUNNG cb=1 rem=64 prio=3
-402 3 1: RUNNG -> BLOCK ib=1 rem=63
-402 2 16: READY -> RUNNG cb=20 rem=152 prio=1
-403 3 1: BLOCK -> READY
-403 2 1: RUNNG -> READY cb=1 rem=149 prio=1
-403 3 0: READY -> RUNNG cb=15 rem=63 prio=3
-407 3 4: RUNNG -> READY cb=11 rem=59 prio=3
-407 3 0: READY -> RUNNG cb=11 rem=59 prio=2
-411 3 4: RUNNG -> READY cb=7 rem=55 prio=2
-411 1 12: READY -> RUNNG cb=13 rem=178 prio=1
-415 1 4: RUNNG -> READY cb=9 rem=174 prio=1
-415 3 4: READY -> RUNNG cb=7 rem=55 prio=1
-419 3 4: RUNNG -> READY cb=3 rem=51 prio=1
-419 0 18: READY -> RUNNG cb=2 rem=306 prio=0
-421 0 2: RUNNG -> BLOCK ib=14 rem=304
-421 2 18: READY -> RUNNG cb=1 rem=149 prio=0
-422 2 1: RUNNG -> BLOCK ib=21 rem=148
-422 1 7: READY -> RUNNG cb=9 rem=174 prio=0
-426 1 4: RUNNG -> READY cb=5 rem=170 prio=0
-426 3 7: READY -> RUNNG cb=3 rem=51 prio=0
-429 3 3: RUNNG -> BLOCK ib=4 rem=48
-429 1 3: READY -> RUNNG cb=5 rem=170 prio=3
-433 3 4: BLOCK -> READY
-433 1 4: RUNNG -> READY cb=1 rem=166 prio=3
-433 3 0: READY -> RUNNG cb=17 rem=48 prio=3
-435 0 14: BLOCK -> READY
-437 3 4: RUNNG -> READY cb=13 rem=44 prio=3
-437 1 4: READY -> RUNNG cb=1 rem=166 prio=2
-438 1 1: RUNNG -> BLOCK ib=13 rem=165
-438 3 1: READY -> RUNNG cb=13 rem=44 prio=2
-442 3 4: RUNNG -> READY cb=9 rem=40 prio=2
-442 0 7: READY -> RUNNG cb=7 rem=304 prio=1
-443 2 21: BLOCK -> READY
-446 0 4: RUNNG -> READY cb=3 rem=300 prio=1
-446 3 4: READY -> RUNNG cb=9 rem=40 prio=1
-450 3 4: RUNNG -> READY cb=5 rem=36 prio=1
-450 2 7: READY -> RUNNG cb=1 rem=148 prio=1
-451 1 13: BLOCK -> READY
-451 2 1: RUNNG -> BLOCK ib=26 rem=147
-451 1 0: READY -> RUNNG cb=16 rem=165 prio=3
-455 1 4: RUNNG -> READY cb=12 rem=161 prio=3
-455 1 0: READY -> RUNNG cb=12 rem=161 prio=2
-459 1 4: RUNNG -> READY cb=8 rem=157 prio=2
-459 1 0: READY -> RUNNG cb=8 rem=157 prio=1
-463 1 4: RUNNG -> READY cb=4 rem=153 prio=1
-463 0 17: READY -> RUNNG cb=3 rem=300 prio=0
-466 0 3: RUNNG -> BLOCK ib=33 rem=297
-466 3 16: READY -> RUNNG cb=5 rem=36 prio=0
-470 3 4: RUNNG -> READY cb=1 rem=32 prio=0
-470 1 7: READY -> RUNNG cb=4 rem=153 prio=0
-474 1 4: RUNNG -> BLOCK ib=40 rem=149
-474 3 4: READY -> RUNNG cb=1 rem=32 prio=3
-475 3 1: RUNNG -> BLOCK ib=3 rem=31
-477 2 26: BLOCK -> READY
-477 2 0: READY -> RUNNG cb=10 rem=147 prio=1
-478 3 3: BLOCK -> READY
-478 2 1: RUNNG -> READY cb=1 rem=144 prio=1
-478 3 0: READY -> RUNNG cb=1 rem=31 prio=3
-479 3 1: RUNNG -> BLOCK ib=1 rem=30
-479 2 1: READY -> RUNNG cb=1 rem=144 prio=0
-480 3 1: BLOCK -> READY
-480 2 1: RUNNG -> BLOCK ib=46 rem=143
-480 3 0: READY -> RUNNG cb=12 rem=30 prio=3
-484 3 4: RUNNG -> READY cb=8 rem=26 prio=3
-484 3 0: READY -> RUNNG cb=8 rem=26 prio=2
-488 3 4: RUNNG -> READY cb=4 rem=22 prio=2
-488 3 0: READY -> RUNNG cb=4 rem=22 prio=1
-492 3 4: RUNNG -> BLOCK ib=7 rem=18
-499 0 33: BLOCK -> READY
-499 3 7: BLOCK -> READY
-499 3 0: READY -> RUNNG cb=5 rem=18 prio=3
-503 3 4: RUNNG -> READY cb=1 rem=14 prio=3
-503 3 0: READY -> RUNNG cb=1 rem=14 prio=2
-504 3 1: RUNNG -> BLOCK ib=1 rem=13
-504 0 5: READY -> RUNNG cb=17 rem=297 prio=1
-505 3 1: BLOCK -> READY
-505 0 1: RUNNG -> READY cb=1 rem=294 prio=1
-505 3 0: READY -> RUNNG cb=8 rem=13 prio=3
-509 3 4: RUNNG -> READY cb=4 rem=9 prio=3
-509 3 0: READY -> RUNNG cb=4 rem=9 prio=2
-513 3 4: RUNNG -> BLOCK ib=1 rem=5
-513 0 8: READY -> RUNNG cb=1 rem=294 prio=0
-514 1 40: BLOCK -> READY
-514 3 1: BLOCK -> READY
-514 0 1: RUNNG -> BLOCK ib=28 rem=293
-514 1 0: READY -> RUNNG cb=40 rem=149 prio=3
-518 1 4: RUNNG -> READY cb=36 rem=145 prio=3
-518 3 4: READY -> RUNNG cb=5 rem=5 prio=3
-522 3 4: RUNNG -> READY cb=1 rem=1 prio=3
-522 1 4: READY -> RUNNG cb=36 rem=145 prio=2
-526 2 46: BLOCK -> READY
-526 1 4: RUNNG -> READY cb=32 rem=141 prio=2
-526 3 4: READY -> RUNNG cb=1 rem=1 prio=2
-527 3 1: DONE
-527 2 1: READY -> RUNNG cb=6 rem=143 prio=1
-531 2 4: RUNNG -> READY cb=2 rem=139 prio=1
-531 1 5: READY -> RUNNG cb=32 rem=141 prio=1
-535 1 4: RUNNG -> READY cb=28 rem=137 prio=1
-535 2 4: READY -> RUNNG cb=2 rem=139 prio=0
-537 2 2: RUNNG -> BLOCK ib=21 rem=137
-537 1 2: READY -> RUNNG cb=28 rem=137 prio=0
-541 1 4: RUNNG -> READY cb=24 rem=133 prio=0
-541 1 0: READY -> RUNNG cb=24 rem=133 prio=3
-542 0 28: BLOCK -> READY
-545 1 4: RUNNG -> READY cb=20 rem=129 prio=3
-545 1 0: READY -> RUNNG cb=20 rem=129 prio=2
-549 1 4: RUNNG -> READY cb=16 rem=125 prio=2
-549 0 7: READY -> RUNNG cb=31 rem=293 prio=1
-553 0 4: RUNNG -> READY cb=27 rem=289 prio=1
-553 1 4: READY -> RUNNG cb=16 rem=125 prio=1
-557 1 4: RUNNG -> READY cb=12 rem=121 prio=1
-557 0 4: READY -> RUNNG cb=27 rem=289 prio=0
-558 2 21: BLOCK -> READY
-558 0 1: RUNNG -> READY cb=1 rem=286 prio=0
-558 2 0: READY -> RUNNG cb=30 rem=137 prio=1
-562 2 4: RUNNG -> READY cb=26 rem=133 prio=1
-562 1 5: READY -> RUNNG cb=12 rem=121 prio=0
-566 1 4: RUNNG -> READY cb=8 rem=117 prio=0
-566 2 4: READY -> RUNNG cb=26 rem=133 prio=0
-570 2 4: RUNNG -> READY cb=22 rem=129 prio=0
-570 1 4: READY -> RUNNG cb=8 rem=117 prio=3
-574 1 4: RUNNG -> READY cb=4 rem=113 prio=3
-574 1 0: READY -> RUNNG cb=4 rem=113 prio=2
-578 1 4: RUNNG -> BLOCK ib=38 rem=109
-578 0 20: READY -> RUNNG cb=1 rem=286 prio=1
-579 0 1: RUNNG -> BLOCK ib=44 rem=285
-579 2 9: READY -> RUNNG cb=22 rem=129 prio=1
-583 2 4: RUNNG -> READY cb=18 rem=125 prio=1
-583 2 0: READY -> RUNNG cb=18 rem=125 prio=0
-587 2 4: RUNNG -> READY cb=14 rem=121 prio=0
-587 2 0: READY -> RUNNG cb=14 rem=121 prio=1
-591 2 4: RUNNG -> READY cb=10 rem=117 prio=1
-591 2 0: READY -> RUNNG cb=10 rem=117 prio=0
-595 2 4: RUNNG -> READY cb=6 rem=113 prio=0
-595 2 0: READY -> RUNNG cb=6 rem=113 prio=1
-599 2 4: RUNNG -> READY cb=2 rem=109 prio=1
-599 2 0: READY -> RUNNG cb=2 rem=109 prio=0
-601 2 2: RUNNG -> BLOCK ib=20 rem=107
-616 1 38: BLOCK -> READY
-616 1 0: READY -> RUNNG cb=36 rem=109 prio=3
-620 1 4: RUNNG -> READY cb=32 rem=105 prio=3
-620 1 0: READY -> RUNNG cb=32 rem=105 prio=2
-621 2 20: BLOCK -> READY
-623 0 44: BLOCK -> READY
-624 1 4: RUNNG -> READY cb=28 rem=101 prio=2
-624 2 3: READY -> RUNNG cb=6 rem=107 prio=1
-628 2 4: RUNNG -> READY cb=2 rem=103 prio=1
-628 0 5: READY -> RUNNG cb=24 rem=285 prio=1
-632 0 4: RUNNG -> READY cb=20 rem=281 prio=1
-632 1 8: READY -> RUNNG cb=28 rem=101 prio=1
-636 1 4: RUNNG -> READY cb=24 rem=97 prio=1
-636 2 8: READY -> RUNNG cb=2 rem=103 prio=0
-638 2 2: RUNNG -> BLOCK ib=20 rem=101
-638 0 6: READY -> RUNNG cb=20 rem=281 prio=0
-642 0 4: RUNNG -> READY cb=16 rem=277 prio=0
-642 1 6: READY -> RUNNG cb=24 rem=97 prio=0
-646 1 4: RUNNG -> READY cb=20 rem=93 prio=0
-646 1 0: READY -> RUNNG cb=20 rem=93 prio=3
-650 1 4: RUNNG -> READY cb=16 rem=89 prio=3
-650 1 0: READY -> RUNNG cb=16 rem=89 prio=2
-654 1 4: RUNNG -> READY cb=12 rem=85 prio=2
-654 0 12: READY -> RUNNG cb=16 rem=277 prio=1
-658 2 20: BLOCK -> READY
-658 0 4: RUNNG -> READY cb=12 rem=273 prio=1
-658 1 4: READY -> RUNNG cb=12 rem=85 prio=1
-662 1 4: RUNNG -> READY cb=8 rem=81 prio=1
-662 2 4: READY -> RUNNG cb=6 rem=101 prio=1
-666 2 4: RUNNG -> READY cb=2 rem=97 prio=1
-666 0 8: READY -> RUNNG cb=12 rem=273 prio=0
-670 0 4: RUNNG -> READY cb=8 rem=269 prio=0
-670 1 8: READY -> RUNNG cb=8 rem=81 prio=0
-674 1 4: RUNNG -> READY cb=4 rem=77 prio=0
-674 2 8: READY -> RUNNG cb=2 rem=97 prio=0
-676 2 2: RUNNG -> BLOCK ib=49 rem=95
-676 1 2: READY -> RUNNG cb=4 rem=77 prio=3
-680 1 4: RUNNG -> BLOCK ib=11 rem=73
-680 0 10: READY -> RUNNG cb=8 rem=269 prio=1
-684 0 4: RUNNG -> READY cb=4 rem=265 prio=1
-684 0 0: READY -> RUNNG cb=4 rem=265 prio=0
-688 0 4: RUNNG -> BLOCK ib=9 rem=261
-691 1 11: BLOCK -> READY
-691 1 0: READY -> RUNNG cb=6 rem=73 prio=3
-695 1 4: RUNNG -> READY cb=2 rem=69 prio=3
-695 1 0: READY -> RUNNG cb=2 rem=69 prio=2
-697 0 9: BLOCK -> READY
-697 1 2: RUNNG -> BLOCK ib=35 rem=67
-697 0 0: READY -> RUNNG cb=10 rem=261 prio=1
-701 0 4: RUNNG -> READY cb=6 rem=257 prio=1
-701 0 0: READY -> RUNNG cb=6 rem=257 prio=0
-705 0 4: RUNNG -> READY cb=2 rem=253 prio=0
-705 0 0: READY -> RUNNG cb=2 rem=253 prio=1
-707 0 2: RUNNG -> BLOCK ib=12 rem=251
-719 0 12: BLOCK -> READY
-719 0 0: READY -> RUNNG cb=26 rem=251 prio=1
-723 0 4: RUNNG -> READY cb=22 rem=247 prio=1
-723 0 0: READY -> RUNNG cb=22 rem=247 prio=0
-725 2 49: BLOCK -> READY
-725 0 2: RUNNG -> READY cb=2 rem=245 prio=0
-725 2 0: READY -> RUNNG cb=20 rem=95 prio=1
-729 2 4: RUNNG -> READY cb=16 rem=91 prio=1
-729 2 0: READY -> RUNNG cb=16 rem=91 prio=0
-732 1 35: BLOCK -> READY
-732 2 3: RUNNG -> READY cb=3 rem=90 prio=0
-732 1 0: READY -> RUNNG cb=5 rem=67 prio=3
-736 1 4: RUNNG -> READY cb=1 rem=63 prio=3
-736 1 0: READY -> RUNNG cb=1 rem=63 prio=2
-737 1 1: RUNNG -> BLOCK ib=14 rem=62
-737 0 12: READY -> RUNNG cb=2 rem=245 prio=1
-739 0 2: RUNNG -> BLOCK ib=36 rem=243
-739 2 7: READY -> RUNNG cb=3 rem=90 prio=1
-742 2 3: RUNNG -> BLOCK ib=23 rem=87
-751 1 14: BLOCK -> READY
-751 1 0: READY -> RUNNG cb=1 rem=62 prio=3
-752 1 1: RUNNG -> BLOCK ib=25 rem=61
-765 2 23: BLOCK -> READY
-765 2 0: READY -> RUNNG cb=23 rem=87 prio=1
-769 2 4: RUNNG -> READY cb=19 rem=83 prio=1
-769 2 0: READY -> RUNNG cb=19 rem=83 prio=0
-773 2 4: RUNNG -> READY cb=15 rem=79 prio=0
-773 2 0: READY -> RUNNG cb=15 rem=79 prio=1
-775 0 36: BLOCK -> READY
-777 1 25: BLOCK -> READY
-777 2 4: RUNNG -> READY cb=11 rem=75 prio=1
-777 1 0: READY -> RUNNG cb=27 rem=61 prio=3
-781 1 4: RUNNG -> READY cb=23 rem=57 prio=3
-781 1 0: READY -> RUNNG cb=23 rem=57 prio=2
-785 1 4: RUNNG -> READY cb=19 rem=53 prio=2
-785 0 10: READY -> RUNNG cb=26 rem=243 prio=1
-789 0 4: RUNNG -> READY cb=22 rem=239 prio=1
-789 1 4: READY -> RUNNG cb=19 rem=53 prio=1
-793 1 4: RUNNG -> READY cb=15 rem=49 prio=1
-793 2 16: READY -> RUNNG cb=11 rem=75 prio=0
-797 2 4: RUNNG -> READY cb=7 rem=71 prio=0
-797 0 8: READY -> RUNNG cb=22 rem=239 prio=0
-801 0 4: RUNNG -> READY cb=18 rem=235 prio=0
-801 1 8: READY -> RUNNG cb=15 rem=49 prio=0
-805 1 4: RUNNG -> READY cb=11 rem=45 prio=0
-805 1 0: READY -> RUNNG cb=11 rem=45 prio=3
-809 1 4: RUNNG -> READY cb=7 rem=41 prio=3
-809 1 0: READY -> RUNNG cb=7 rem=41 prio=2
-813 1 4: RUNNG -> READY cb=3 rem=37 prio=2
-813 2 16: READY -> RUNNG cb=7 rem=71 prio=1
-817 2 4: RUNNG -> READY cb=3 rem=67 prio=1
-817 0 16: READY -> RUNNG cb=18 rem=235 prio=1
-821 0 4: RUNNG -> READY cb=14 rem=231 prio=1
-821 1 8: READY -> RUNNG cb=3 rem=37 prio=1
-824 1 3: RUNNG -> BLOCK ib=30 rem=34
-824 2 7: READY -> RUNNG cb=3 rem=67 prio=0
-827 2 3: RUNNG -> BLOCK ib=47 rem=64
-827 0 6: READY -> RUNNG cb=14 rem=231 prio=0
-831 0 4: RUNNG -> READY cb=10 rem=227 prio=0
-831 0 0: READY -> RUNNG cb=10 rem=227 prio=1
-835 0 4: RUNNG -> READY cb=6 rem=223 prio=1
-835 0 0: READY -> RUNNG cb=6 rem=223 prio=0
-839 0 4: RUNNG -> READY cb=2 rem=219 prio=0
-839 0 0: READY -> RUNNG cb=2 rem=219 prio=1
-841 0 2: RUNNG -> BLOCK ib=46 rem=217
-854 1 30: BLOCK -> READY
-854 1 0: READY -> RUNNG cb=5 rem=34 prio=3
-858 1 4: RUNNG -> READY cb=1 rem=30 prio=3
-858 1 0: READY -> RUNNG cb=1 rem=30 prio=2
-859 1 1: RUNNG -> BLOCK ib=34 rem=29
-874 2 47: BLOCK -> READY
-874 2 0: READY -> RUNNG cb=29 rem=64 prio=1
-878 2 4: RUNNG -> READY cb=25 rem=60 prio=1
-878 2 0: READY -> RUNNG cb=25 rem=60 prio=0
-882 2 4: RUNNG -> READY cb=21 rem=56 prio=0
-882 2 0: READY -> RUNNG cb=21 rem=56 prio=1
-886 2 4: RUNNG -> READY cb=17 rem=52 prio=1
-886 2 0: READY -> RUNNG cb=17 rem=52 prio=0
-887 0 46: BLOCK -> READY
-887 2 1: RUNNG -> READY cb=1 rem=49 prio=0
-887 0 0: READY -> RUNNG cb=25 rem=217 prio=1
-891 0 4: RUNNG -> READY cb=21 rem=213 prio=1
-891 0 0: READY -> RUNNG cb=21 rem=213 prio=0
-893 1 34: BLOCK -> READY
-893 0 2: RUNNG -> READY cb=2 rem=211 prio=0
-893 1 0: READY -> RUNNG cb=16 rem=29 prio=3
-897 1 4: RUNNG -> READY cb=12 rem=25 prio=3
-897 1 0: READY -> RUNNG cb=12 rem=25 prio=2
-901 1 4: RUNNG -> READY cb=8 rem=21 prio=2
-901 1 0: READY -> RUNNG cb=8 rem=21 prio=1
-905 1 4: RUNNG -> READY cb=4 rem=17 prio=1
-905 1 0: READY -> RUNNG cb=4 rem=17 prio=0
-909 1 4: RUNNG -> BLOCK ib=8 rem=13
-909 2 22: READY -> RUNNG cb=1 rem=49 prio=1
-910 2 1: RUNNG -> BLOCK ib=17 rem=48
-910 0 17: READY -> RUNNG cb=2 rem=211 prio=1
-912 0 2: RUNNG -> BLOCK ib=37 rem=209
-917 1 8: BLOCK -> READY
-917 1 0: READY -> RUNNG cb=13 rem=13 prio=3
-921 1 4: RUNNG -> READY cb=9 rem=9 prio=3
-921 1 0: READY -> RUNNG cb=9 rem=9 prio=2
-925 1 4: RUNNG -> READY cb=5 rem=5 prio=2
-925 1 0: READY -> RUNNG cb=5 rem=5 prio=1
-927 2 17: BLOCK -> READY
-929 1 4: RUNNG -> READY cb=1 rem=1 prio=1
-929 2 2: READY -> RUNNG cb=12 rem=48 prio=1
-933 2 4: RUNNG -> READY cb=8 rem=44 prio=1
-933 1 4: READY -> RUNNG cb=1 rem=1 prio=0
-934 1 1: DONE
-934 2 1: READY -> RUNNG cb=8 rem=44 prio=0
-938 2 4: RUNNG -> READY cb=4 rem=40 prio=0
-938 2 0: READY -> RUNNG cb=4 rem=40 prio=1
-942 2 4: RUNNG -> BLOCK ib=38 rem=36
-949 0 37: BLOCK -> READY
-949 0 0: READY -> RUNNG cb=9 rem=209 prio=1
-953 0 4: RUNNG -> READY cb=5 rem=205 prio=1
-953 0 0: READY -> RUNNG cb=5 rem=205 prio=0
-957 0 4: RUNNG -> READY cb=1 rem=201 prio=0
-957 0 0: READY -> RUNNG cb=1 rem=201 prio=1
-958 0 1: RUNNG -> BLOCK ib=50 rem=200
-980 2 38: BLOCK -> READY
-980 2 0: READY -> RUNNG cb=18 rem=36 prio=1
-984 2 4: RUNNG -> READY cb=14 rem=32 prio=1
-984 2 0: READY -> RUNNG cb=14 rem=32 prio=0
-988 2 4: RUNNG -> READY cb=10 rem=28 prio=0
-988 2 0: READY -> RUNNG cb=10 rem=28 prio=1
-992 2 4: RUNNG -> READY cb=6 rem=24 prio=1
-992 2 0: READY -> RUNNG cb=6 rem=24 prio=0
-996 2 4: RUNNG -> READY cb=2 rem=20 prio=0
-996 2 0: READY -> RUNNG cb=2 rem=20 prio=1
-998 2 2: RUNNG -> BLOCK ib=44 rem=18
-1008 0 50: BLOCK -> READY
-1008 0 0: READY -> RUNNG cb=12 rem=200 prio=1
-1012 0 4: RUNNG -> READY cb=8 rem=196 prio=1
-1012 0 0: READY -> RUNNG cb=8 rem=196 prio=0
-1016 0 4: RUNNG -> READY cb=4 rem=192 prio=0
-1016 0 0: READY -> RUNNG cb=4 rem=192 prio=1
-1020 0 4: RUNNG -> BLOCK ib=31 rem=188
-1042 2 44: BLOCK -> READY
-1042 2 0: READY -> RUNNG cb=17 rem=18 prio=1
-1046 2 4: RUNNG -> READY cb=13 rem=14 prio=1
-1046 2 0: READY -> RUNNG cb=13 rem=14 prio=0
-1050 2 4: RUNNG -> READY cb=9 rem=10 prio=0
-1050 2 0: READY -> RUNNG cb=9 rem=10 prio=1
-1051 0 31: BLOCK -> READY
-1054 2 4: RUNNG -> READY cb=5 rem=6 prio=1
-1054 0 3: READY -> RUNNG cb=19 rem=188 prio=1
-1058 0 4: RUNNG -> READY cb=15 rem=184 prio=1
-1058 2 4: READY -> RUNNG cb=5 rem=6 prio=0
-1062 2 4: RUNNG -> READY cb=1 rem=2 prio=0
-1062 0 4: READY -> RUNNG cb=15 rem=184 prio=0
-1066 0 4: RUNNG -> READY cb=11 rem=180 prio=0
-1066 2 4: READY -> RUNNG cb=1 rem=2 prio=1
-1067 2 1: RUNNG -> BLOCK ib=31 rem=1
-1067 0 1: READY -> RUNNG cb=11 rem=180 prio=1
-1071 0 4: RUNNG -> READY cb=7 rem=176 prio=1
-1071 0 0: READY -> RUNNG cb=7 rem=176 prio=0
-1075 0 4: RUNNG -> READY cb=3 rem=172 prio=0
-1075 0 0: READY -> RUNNG cb=3 rem=172 prio=1
-1078 0 3: RUNNG -> BLOCK ib=14 rem=169
-1092 0 14: BLOCK -> READY
-1092 0 0: READY -> RUNNG cb=4 rem=169 prio=1
-1096 0 4: RUNNG -> BLOCK ib=5 rem=165
-1098 2 31: BLOCK -> READY
-1098 2 0: READY -> RUNNG cb=1 rem=1 prio=1
-1099 2 1: DONE
-1101 0 5: BLOCK -> READY
-1101 0 0: READY -> RUNNG cb=29 rem=165 prio=1
-1105 0 4: RUNNG -> READY cb=25 rem=161 prio=1
-1105 0 0: READY -> RUNNG cb=25 rem=161 prio=0
-1109 0 4: RUNNG -> READY cb=21 rem=157 prio=0
-1109 0 0: READY -> RUNNG cb=21 rem=157 prio=1
-1113 0 4: RUNNG -> READY cb=17 rem=153 prio=1
-1113 0 0: READY -> RUNNG cb=17 rem=153 prio=0
-1117 0 4: RUNNG -> READY cb=13 rem=149 prio=0
-1117 0 0: READY -> RUNNG cb=13 rem=149 prio=1
-1121 0 4: RUNNG -> READY cb=9 rem=145 prio=1
-1121 0 0: READY -> RUNNG cb=9 rem=145 prio=0
-1125 0 4: RUNNG -> READY cb=5 rem=141 prio=0
-1125 0 0: READY -> RUNNG cb=5 rem=141 prio=1
-1129 0 4: RUNNG -> READY cb=1 rem=137 prio=1
-1129 0 0: READY -> RUNNG cb=1 rem=137 prio=0
-1130 0 1: RUNNG -> BLOCK ib=19 rem=136
-1149 0 19: BLOCK -> READY
-1149 0 0: READY -> RUNNG cb=16 rem=136 prio=1
-1153 0 4: RUNNG -> READY cb=12 rem=132 prio=1
-1153 0 0: READY -> RUNNG cb=12 rem=132 prio=0
-1157 0 4: RUNNG -> READY cb=8 rem=128 prio=0
-1157 0 0: READY -> RUNNG cb=8 rem=128 prio=1
-1161 0 4: RUNNG -> READY cb=4 rem=124 prio=1
-1161 0 0: READY -> RUNNG cb=4 rem=124 prio=0
-1165 0 4: RUNNG -> BLOCK ib=4 rem=120
-1169 0 4: BLOCK -> READY
-1169 0 0: READY -> RUNNG cb=21 rem=120 prio=1
-1173 0 4: RUNNG -> READY cb=17 rem=116 prio=1
-1173 0 0: READY -> RUNNG cb=17 rem=116 prio=0
-1177 0 4: RUNNG -> READY cb=13 rem=112 prio=0
-1177 0 0: READY -> RUNNG cb=13 rem=112 prio=1
-1181 0 4: RUNNG -> READY cb=9 rem=108 prio=1
-1181 0 0: READY -> RUNNG cb=9 rem=108 prio=0
-1185 0 4: RUNNG -> READY cb=5 rem=104 prio=0
-1185 0 0: READY -> RUNNG cb=5 rem=104 prio=1
-1189 0 4: RUNNG -> READY cb=1 rem=100 prio=1
-1189 0 0: READY -> RUNNG cb=1 rem=100 prio=0
-1190 0 1: RUNNG -> BLOCK ib=12 rem=99
-1202 0 12: BLOCK -> READY
-1202 0 0: READY -> RUNNG cb=1 rem=99 prio=1
-1203 0 1: RUNNG -> BLOCK ib=2 rem=98
-1205 0 2: BLOCK -> READY
-1205 0 0: READY -> RUNNG cb=6 rem=98 prio=1
-1209 0 4: RUNNG -> READY cb=2 rem=94 prio=1
-1209 0 0: READY -> RUNNG cb=2 rem=94 prio=0
-1211 0 2: RUNNG -> BLOCK ib=35 rem=92
-1246 0 35: BLOCK -> READY
-1246 0 0: READY -> RUNNG cb=27 rem=92 prio=1
-1250 0 4: RUNNG -> READY cb=23 rem=88 prio=1
-1250 0 0: READY -> RUNNG cb=23 rem=88 prio=0
-1254 0 4: RUNNG -> READY cb=19 rem=84 prio=0
-1254 0 0: READY -> RUNNG cb=19 rem=84 prio=1
-1258 0 4: RUNNG -> READY cb=15 rem=80 prio=1
-1258 0 0: READY -> RUNNG cb=15 rem=80 prio=0
-1262 0 4: RUNNG -> READY cb=11 rem=76 prio=0
-1262 0 0: READY -> RUNNG cb=11 rem=76 prio=1
-1266 0 4: RUNNG -> READY cb=7 rem=72 prio=1
-1266 0 0: READY -> RUNNG cb=7 rem=72 prio=0
-1270 0 4: RUNNG -> READY cb=3 rem=68 prio=0
-1270 0 0: READY -> RUNNG cb=3 rem=68 prio=1
-1273 0 3: RUNNG -> BLOCK ib=21 rem=65
-1294 0 21: BLOCK -> READY
-1294 0 0: READY -> RUNNG cb=32 rem=65 prio=1
-1298 0 4: RUNNG -> READY cb=28 rem=61 prio=1
-1298 0 0: READY -> RUNNG cb=28 rem=61 prio=0
-1302 0 4: RUNNG -> READY cb=24 rem=57 prio=0
-1302 0 0: READY -> RUNNG cb=24 rem=57 prio=1
-1306 0 4: RUNNG -> READY cb=20 rem=53 prio=1
-1306 0 0: READY -> RUNNG cb=20 rem=53 prio=0
-1310 0 4: RUNNG -> READY cb=16 rem=49 prio=0
-1310 0 0: READY -> RUNNG cb=16 rem=49 prio=1
-1314 0 4: RUNNG -> READY cb=12 rem=45 prio=1
-1314 0 0: READY -> RUNNG cb=12 rem=45 prio=0
-1318 0 4: RUNNG -> READY cb=8 rem=41 prio=0
-1318 0 0: READY -> RUNNG cb=8 rem=41 prio=1
-1322 0 4: RUNNG -> READY cb=4 rem=37 prio=1
-1322 0 0: READY -> RUNNG cb=4 rem=37 prio=0
-1326 0 4: RUNNG -> BLOCK ib=43 rem=33
-1369 0 43: BLOCK -> READY
-1369 0 0: READY -> RUNNG cb=9 rem=33 prio=1
-1373 0 4: RUNNG -> READY cb=5 rem=29 prio=1
-1373 0 0: READY -> RUNNG cb=5 rem=29 prio=0
-1377 0 4: RUNNG -> READY cb=1 rem=25 prio=0
-1377 0 0: READY -> RUNNG cb=1 rem=25 prio=1
-1378 0 1: RUNNG -> BLOCK ib=48 rem=24
-1426 0 48: BLOCK -> READY
-1426 0 0: READY -> RUNNG cb=24 rem=24 prio=1
-1430 0 4: RUNNG -> READY cb=20 rem=20 prio=1
-1430 0 0: READY -> RUNNG cb=20 rem=20 prio=0
-1434 0 4: RUNNG -> READY cb=16 rem=16 prio=0
-1434 0 0: READY -> RUNNG cb=16 rem=16 prio=1
-1438 0 4: RUNNG -> READY cb=12 rem=12 prio=1
-1438 0 0: READY -> RUNNG cb=12 rem=12 prio=0
-1442 0 4: RUNNG -> READY cb=8 rem=8 prio=0
-1442 0 0: READY -> RUNNG cb=8 rem=8 prio=1
-1446 0 4: RUNNG -> READY cb=4 rem=4 prio=1
-1446 0 0: READY -> RUNNG cb=4 rem=4 prio=0
-1450 0 4: DONE
+--> PrioPreempt Cond1=0Cond2=1-->NO
+337 1 4: RUNNG -> READY cb=12 rem=212 prio=3
+337 3 2: READY -> RUNNG cb=23 rem=87 prio=3
+341 3 4: RUNNG -> READY cb=19 rem=83 prio=3
+341 1 4: READY -> RUNNG cb=12 rem=212 prio=2
+345 1 4: RUNNG -> READY cb=8 rem=208 prio=2
+345 3 4: READY -> RUNNG cb=19 rem=83 prio=2
+349 3 4: RUNNG -> READY cb=15 rem=79 prio=2
+349 0 22: READY -> RUNNG cb=39 rem=282 prio=1
+353 0 4: RUNNG -> READY cb=35 rem=278 prio=1
+353 1 8: READY -> RUNNG cb=8 rem=208 prio=1
+355 2 27: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+357 1 4: RUNNG -> READY cb=4 rem=204 prio=1
+357 3 8: READY -> RUNNG cb=15 rem=79 prio=1
+361 3 4: RUNNG -> READY cb=11 rem=75 prio=1
+361 2 6: READY -> RUNNG cb=23 rem=173 prio=1
+365 2 4: RUNNG -> READY cb=19 rem=169 prio=1
+365 0 12: READY -> RUNNG cb=35 rem=278 prio=0
+369 0 4: RUNNG -> READY cb=31 rem=274 prio=0
+369 1 12: READY -> RUNNG cb=4 rem=204 prio=0
+373 1 4: RUNNG -> BLOCK ib=1 rem=200
+373 3 12: READY -> RUNNG cb=11 rem=75 prio=0
+374 1 1: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+374 3 1: RUNNG -> READY cb=7 rem=74 prio=0
+374 1 0: READY -> RUNNG cb=40 rem=200 prio=3
+378 1 4: RUNNG -> READY cb=36 rem=196 prio=3
+378 1 0: READY -> RUNNG cb=36 rem=196 prio=2
+382 1 4: RUNNG -> READY cb=32 rem=192 prio=2
+382 1 0: READY -> RUNNG cb=32 rem=192 prio=1
+386 1 4: RUNNG -> READY cb=28 rem=188 prio=1
+386 2 21: READY -> RUNNG cb=19 rem=169 prio=0
+390 2 4: RUNNG -> READY cb=15 rem=165 prio=0
+390 1 4: READY -> RUNNG cb=28 rem=188 prio=0
+394 1 4: RUNNG -> READY cb=24 rem=184 prio=0
+394 3 20: READY -> RUNNG cb=7 rem=74 prio=3
+398 3 4: RUNNG -> READY cb=3 rem=70 prio=3
+398 1 4: READY -> RUNNG cb=24 rem=184 prio=3
+402 1 4: RUNNG -> READY cb=20 rem=180 prio=3
+402 3 4: READY -> RUNNG cb=3 rem=70 prio=2
+405 3 3: RUNNG -> BLOCK ib=10 rem=67
+405 1 3: READY -> RUNNG cb=20 rem=180 prio=2
+409 1 4: RUNNG -> READY cb=16 rem=176 prio=2
+409 0 40: READY -> RUNNG cb=31 rem=274 prio=1
+413 0 4: RUNNG -> READY cb=27 rem=270 prio=1
+413 2 23: READY -> RUNNG cb=15 rem=165 prio=1
+415 3 10: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+415 2 2: RUNNG -> READY cb=11 rem=163 prio=1
+415 3 0: READY -> RUNNG cb=21 rem=67 prio=3
+419 3 4: RUNNG -> READY cb=17 rem=63 prio=3
+419 3 0: READY -> RUNNG cb=17 rem=63 prio=2
+423 3 4: RUNNG -> READY cb=13 rem=59 prio=2
+423 1 14: READY -> RUNNG cb=16 rem=176 prio=1
+427 1 4: RUNNG -> READY cb=12 rem=172 prio=1
+427 3 4: READY -> RUNNG cb=13 rem=59 prio=1
+431 3 4: RUNNG -> READY cb=9 rem=55 prio=1
+431 0 18: READY -> RUNNG cb=27 rem=270 prio=0
+435 0 4: RUNNG -> READY cb=23 rem=266 prio=0
+435 2 20: READY -> RUNNG cb=11 rem=163 prio=0
+439 2 4: RUNNG -> READY cb=7 rem=159 prio=0
+439 1 12: READY -> RUNNG cb=12 rem=172 prio=0
+443 1 4: RUNNG -> READY cb=8 rem=168 prio=0
+443 3 12: READY -> RUNNG cb=9 rem=55 prio=0
+447 3 4: RUNNG -> READY cb=5 rem=51 prio=0
+447 1 4: READY -> RUNNG cb=8 rem=168 prio=3
+451 1 4: RUNNG -> READY cb=4 rem=164 prio=3
+451 3 4: READY -> RUNNG cb=5 rem=51 prio=3
+455 3 4: RUNNG -> READY cb=1 rem=47 prio=3
+455 1 4: READY -> RUNNG cb=4 rem=164 prio=2
+459 1 4: RUNNG -> BLOCK ib=15 rem=160
+459 3 4: READY -> RUNNG cb=1 rem=47 prio=2
+460 3 1: RUNNG -> BLOCK ib=8 rem=46
+460 0 25: READY -> RUNNG cb=23 rem=266 prio=1
+464 0 4: RUNNG -> READY cb=19 rem=262 prio=1
+464 2 25: READY -> RUNNG cb=7 rem=159 prio=1
+468 3 8: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=0-->NO
+468 2 4: RUNNG -> READY cb=3 rem=155 prio=1
+468 3 0: READY -> RUNNG cb=5 rem=46 prio=3
+472 3 4: RUNNG -> READY cb=1 rem=42 prio=3
+472 3 0: READY -> RUNNG cb=1 rem=42 prio=2
+473 3 1: RUNNG -> BLOCK ib=4 rem=41
+473 0 9: READY -> RUNNG cb=19 rem=262 prio=0
+474 1 15: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+474 0 1: RUNNG -> READY cb=15 rem=261 prio=0
+474 1 0: READY -> RUNNG cb=1 rem=160 prio=3
+475 1 1: RUNNG -> BLOCK ib=18 rem=159
+475 2 7: READY -> RUNNG cb=3 rem=155 prio=0
+477 3 4: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+477 2 2: RUNNG -> READY cb=0 rem=153 prio=0
+477 3 0: READY -> RUNNG cb=1 rem=41 prio=3
+478 3 1: RUNNG -> BLOCK ib=1 rem=40
+478 0 4: READY -> RUNNG cb=15 rem=261 prio=1
+479 3 1: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+479 0 1: RUNNG -> READY cb=11 rem=260 prio=1
+479 3 0: READY -> RUNNG cb=14 rem=40 prio=3
+483 3 4: RUNNG -> READY cb=10 rem=36 prio=3
+483 3 0: READY -> RUNNG cb=10 rem=36 prio=2
+487 3 4: RUNNG -> READY cb=6 rem=32 prio=2
+487 2 10: READY -> RUNNG cb=15 rem=153 prio=1
+491 2 4: RUNNG -> READY cb=11 rem=149 prio=1
+491 3 4: READY -> RUNNG cb=6 rem=32 prio=1
+493 1 18: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+493 3 2: RUNNG -> READY cb=2 rem=30 prio=1
+493 1 0: READY -> RUNNG cb=23 rem=159 prio=3
+497 1 4: RUNNG -> READY cb=19 rem=155 prio=3
+497 1 0: READY -> RUNNG cb=19 rem=155 prio=2
+501 1 4: RUNNG -> READY cb=15 rem=151 prio=2
+501 1 0: READY -> RUNNG cb=15 rem=151 prio=1
+505 1 4: RUNNG -> READY cb=11 rem=147 prio=1
+505 0 26: READY -> RUNNG cb=11 rem=260 prio=0
+509 0 4: RUNNG -> READY cb=7 rem=256 prio=0
+509 2 18: READY -> RUNNG cb=11 rem=149 prio=0
+513 2 4: RUNNG -> READY cb=7 rem=145 prio=0
+513 3 20: READY -> RUNNG cb=2 rem=30 prio=0
+515 3 2: RUNNG -> BLOCK ib=7 rem=28
+515 1 10: READY -> RUNNG cb=11 rem=147 prio=0
+519 1 4: RUNNG -> READY cb=7 rem=143 prio=0
+519 1 0: READY -> RUNNG cb=7 rem=143 prio=3
+522 3 7: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+523 1 4: RUNNG -> READY cb=3 rem=139 prio=3
+523 3 1: READY -> RUNNG cb=2 rem=28 prio=3
+525 3 2: RUNNG -> BLOCK ib=6 rem=26
+525 1 2: READY -> RUNNG cb=3 rem=139 prio=2
+528 1 3: RUNNG -> BLOCK ib=2 rem=136
+528 0 19: READY -> RUNNG cb=7 rem=256 prio=1
+530 1 2: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+530 0 2: RUNNG -> READY cb=3 rem=254 prio=1
+530 1 0: READY -> RUNNG cb=1 rem=136 prio=3
+531 3 6: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=0-->NO
+531 1 1: RUNNG -> BLOCK ib=40 rem=135
+531 3 0: READY -> RUNNG cb=3 rem=26 prio=3
+534 3 3: RUNNG -> BLOCK ib=2 rem=23
+534 2 21: READY -> RUNNG cb=7 rem=145 prio=1
+536 3 2: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+536 2 2: RUNNG -> READY cb=3 rem=143 prio=1
+536 3 0: READY -> RUNNG cb=1 rem=23 prio=3
+537 3 1: RUNNG -> BLOCK ib=1 rem=22
+537 0 7: READY -> RUNNG cb=3 rem=254 prio=0
+538 3 1: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+538 0 1: RUNNG -> READY cb=0 rem=253 prio=0
+538 3 0: READY -> RUNNG cb=19 rem=22 prio=3
+542 3 4: RUNNG -> READY cb=15 rem=18 prio=3
+542 3 0: READY -> RUNNG cb=15 rem=18 prio=2
+546 3 4: RUNNG -> READY cb=11 rem=14 prio=2
+546 3 0: READY -> RUNNG cb=11 rem=14 prio=1
+550 3 4: RUNNG -> READY cb=7 rem=10 prio=1
+550 2 14: READY -> RUNNG cb=3 rem=143 prio=0
+553 2 3: RUNNG -> BLOCK ib=38 rem=140
+553 3 3: READY -> RUNNG cb=7 rem=10 prio=0
+557 3 4: RUNNG -> READY cb=3 rem=6 prio=0
+557 3 0: READY -> RUNNG cb=3 rem=6 prio=3
+560 3 3: RUNNG -> BLOCK ib=7 rem=3
+560 0 22: READY -> RUNNG cb=29 rem=253 prio=1
+564 0 4: RUNNG -> READY cb=25 rem=249 prio=1
+564 0 0: READY -> RUNNG cb=25 rem=249 prio=0
+567 3 7: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+567 0 3: RUNNG -> READY cb=21 rem=246 prio=0
+567 3 0: READY -> RUNNG cb=3 rem=3 prio=3
+570 3 0: DONE
+570 0 3: READY -> RUNNG cb=21 rem=246 prio=1
+571 1 40: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+571 0 1: RUNNG -> READY cb=17 rem=245 prio=1
+571 1 0: READY -> RUNNG cb=6 rem=135 prio=3
+575 1 4: RUNNG -> READY cb=2 rem=131 prio=3
+575 1 0: READY -> RUNNG cb=2 rem=131 prio=2
+577 1 2: RUNNG -> BLOCK ib=20 rem=129
+577 0 6: READY -> RUNNG cb=17 rem=245 prio=0
+581 0 4: RUNNG -> READY cb=13 rem=241 prio=0
+581 0 0: READY -> RUNNG cb=13 rem=241 prio=1
+585 0 4: RUNNG -> READY cb=9 rem=237 prio=1
+585 0 0: READY -> RUNNG cb=9 rem=237 prio=0
+589 0 4: RUNNG -> READY cb=5 rem=233 prio=0
+589 0 0: READY -> RUNNG cb=5 rem=233 prio=1
+591 2 38: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+593 0 4: RUNNG -> READY cb=1 rem=229 prio=1
+593 2 2: READY -> RUNNG cb=1 rem=140 prio=1
+594 2 1: RUNNG -> BLOCK ib=28 rem=139
+594 0 1: READY -> RUNNG cb=1 rem=229 prio=0
+595 0 1: RUNNG -> BLOCK ib=49 rem=228
+597 1 20: BLOCK -> READY
+597 1 0: READY -> RUNNG cb=32 rem=129 prio=3
+601 1 4: RUNNG -> READY cb=28 rem=125 prio=3
+601 1 0: READY -> RUNNG cb=28 rem=125 prio=2
+605 1 4: RUNNG -> READY cb=24 rem=121 prio=2
+605 1 0: READY -> RUNNG cb=24 rem=121 prio=1
+609 1 4: RUNNG -> READY cb=20 rem=117 prio=1
+609 1 0: READY -> RUNNG cb=20 rem=117 prio=0
+613 1 4: RUNNG -> READY cb=16 rem=113 prio=0
+613 1 0: READY -> RUNNG cb=16 rem=113 prio=3
+617 1 4: RUNNG -> READY cb=12 rem=109 prio=3
+617 1 0: READY -> RUNNG cb=12 rem=109 prio=2
+621 1 4: RUNNG -> READY cb=8 rem=105 prio=2
+621 1 0: READY -> RUNNG cb=8 rem=105 prio=1
+622 2 28: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+625 1 4: RUNNG -> READY cb=4 rem=101 prio=1
+625 2 3: READY -> RUNNG cb=6 rem=139 prio=1
+629 2 4: RUNNG -> READY cb=2 rem=135 prio=1
+629 1 4: READY -> RUNNG cb=4 rem=101 prio=0
+633 1 4: RUNNG -> BLOCK ib=21 rem=97
+633 2 4: READY -> RUNNG cb=2 rem=135 prio=0
+635 2 2: RUNNG -> BLOCK ib=31 rem=133
+644 0 49: BLOCK -> READY
+644 0 0: READY -> RUNNG cb=48 rem=228 prio=1
+648 0 4: RUNNG -> READY cb=44 rem=224 prio=1
+648 0 0: READY -> RUNNG cb=44 rem=224 prio=0
+652 0 4: RUNNG -> READY cb=40 rem=220 prio=0
+652 0 0: READY -> RUNNG cb=40 rem=220 prio=1
+654 1 21: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+654 0 2: RUNNG -> READY cb=36 rem=218 prio=1
+654 1 0: READY -> RUNNG cb=27 rem=97 prio=3
+658 1 4: RUNNG -> READY cb=23 rem=93 prio=3
+658 1 0: READY -> RUNNG cb=23 rem=93 prio=2
+662 1 4: RUNNG -> READY cb=19 rem=89 prio=2
+662 1 0: READY -> RUNNG cb=19 rem=89 prio=1
+666 2 31: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=0-->NO
+666 1 4: RUNNG -> READY cb=15 rem=85 prio=1
+666 2 0: READY -> RUNNG cb=24 rem=133 prio=1
+670 2 4: RUNNG -> READY cb=20 rem=129 prio=1
+670 0 16: READY -> RUNNG cb=36 rem=218 prio=0
+674 0 4: RUNNG -> READY cb=32 rem=214 prio=0
+674 1 8: READY -> RUNNG cb=15 rem=85 prio=0
+678 1 4: RUNNG -> READY cb=11 rem=81 prio=0
+678 2 8: READY -> RUNNG cb=20 rem=129 prio=0
+682 2 4: RUNNG -> READY cb=16 rem=125 prio=0
+682 1 4: READY -> RUNNG cb=11 rem=81 prio=3
+686 1 4: RUNNG -> READY cb=7 rem=77 prio=3
+686 1 0: READY -> RUNNG cb=7 rem=77 prio=2
+690 1 4: RUNNG -> READY cb=3 rem=73 prio=2
+690 0 16: READY -> RUNNG cb=32 rem=214 prio=1
+694 0 4: RUNNG -> READY cb=28 rem=210 prio=1
+694 2 12: READY -> RUNNG cb=16 rem=125 prio=1
+698 2 4: RUNNG -> READY cb=12 rem=121 prio=1
+698 1 8: READY -> RUNNG cb=3 rem=73 prio=1
+701 1 3: RUNNG -> BLOCK ib=40 rem=70
+701 0 7: READY -> RUNNG cb=28 rem=210 prio=0
+705 0 4: RUNNG -> READY cb=24 rem=206 prio=0
+705 2 7: READY -> RUNNG cb=12 rem=121 prio=0
+709 2 4: RUNNG -> READY cb=8 rem=117 prio=0
+709 0 4: READY -> RUNNG cb=24 rem=206 prio=1
+713 0 4: RUNNG -> READY cb=20 rem=202 prio=1
+713 2 4: READY -> RUNNG cb=8 rem=117 prio=1
+717 2 4: RUNNG -> READY cb=4 rem=113 prio=1
+717 0 4: READY -> RUNNG cb=20 rem=202 prio=0
+721 0 4: RUNNG -> READY cb=16 rem=198 prio=0
+721 2 4: READY -> RUNNG cb=4 rem=113 prio=0
+725 2 4: RUNNG -> BLOCK ib=13 rem=109
+725 0 4: READY -> RUNNG cb=16 rem=198 prio=1
+729 0 4: RUNNG -> READY cb=12 rem=194 prio=1
+729 0 0: READY -> RUNNG cb=12 rem=194 prio=0
+733 0 4: RUNNG -> READY cb=8 rem=190 prio=0
+733 0 0: READY -> RUNNG cb=8 rem=190 prio=1
+737 0 4: RUNNG -> READY cb=4 rem=186 prio=1
+737 0 0: READY -> RUNNG cb=4 rem=186 prio=0
+738 2 13: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+738 0 1: RUNNG -> READY cb=0 rem=185 prio=0
+738 2 0: READY -> RUNNG cb=6 rem=109 prio=1
+741 1 40: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+741 2 3: RUNNG -> READY cb=2 rem=106 prio=1
+741 1 0: READY -> RUNNG cb=38 rem=70 prio=3
+745 1 4: RUNNG -> READY cb=34 rem=66 prio=3
+745 1 0: READY -> RUNNG cb=34 rem=66 prio=2
+749 1 4: RUNNG -> READY cb=30 rem=62 prio=2
+749 1 0: READY -> RUNNG cb=30 rem=62 prio=1
+753 1 4: RUNNG -> READY cb=26 rem=58 prio=1
+753 2 12: READY -> RUNNG cb=2 rem=106 prio=0
+755 2 2: RUNNG -> BLOCK ib=20 rem=104
+755 1 2: READY -> RUNNG cb=26 rem=58 prio=0
+759 1 4: RUNNG -> READY cb=22 rem=54 prio=0
+759 1 0: READY -> RUNNG cb=22 rem=54 prio=3
+763 1 4: RUNNG -> READY cb=18 rem=50 prio=3
+763 1 0: READY -> RUNNG cb=18 rem=50 prio=2
+767 1 4: RUNNG -> READY cb=14 rem=46 prio=2
+767 0 29: READY -> RUNNG cb=24 rem=185 prio=1
+771 0 4: RUNNG -> READY cb=20 rem=181 prio=1
+771 1 4: READY -> RUNNG cb=14 rem=46 prio=1
+775 2 20: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=0-->NO
+775 1 4: RUNNG -> READY cb=10 rem=42 prio=1
+775 2 0: READY -> RUNNG cb=27 rem=104 prio=1
+779 2 4: RUNNG -> READY cb=23 rem=100 prio=1
+779 0 8: READY -> RUNNG cb=20 rem=181 prio=0
+783 0 4: RUNNG -> READY cb=16 rem=177 prio=0
+783 1 8: READY -> RUNNG cb=10 rem=42 prio=0
+787 1 4: RUNNG -> READY cb=6 rem=38 prio=0
+787 2 8: READY -> RUNNG cb=23 rem=100 prio=0
+791 2 4: RUNNG -> READY cb=19 rem=96 prio=0
+791 1 4: READY -> RUNNG cb=6 rem=38 prio=3
+795 1 4: RUNNG -> READY cb=2 rem=34 prio=3
+795 1 0: READY -> RUNNG cb=2 rem=34 prio=2
+797 1 2: RUNNG -> BLOCK ib=11 rem=32
+797 0 14: READY -> RUNNG cb=16 rem=177 prio=1
+801 0 4: RUNNG -> READY cb=12 rem=173 prio=1
+801 2 10: READY -> RUNNG cb=19 rem=96 prio=1
+805 2 4: RUNNG -> READY cb=15 rem=92 prio=1
+805 0 4: READY -> RUNNG cb=12 rem=173 prio=0
+808 1 11: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+808 0 3: RUNNG -> READY cb=8 rem=170 prio=0
+808 1 0: READY -> RUNNG cb=15 rem=32 prio=3
+812 1 4: RUNNG -> READY cb=11 rem=28 prio=3
+812 1 0: READY -> RUNNG cb=11 rem=28 prio=2
+816 1 4: RUNNG -> READY cb=7 rem=24 prio=2
+816 1 0: READY -> RUNNG cb=7 rem=24 prio=1
+820 1 4: RUNNG -> READY cb=3 rem=20 prio=1
+820 2 15: READY -> RUNNG cb=15 rem=92 prio=0
+824 2 4: RUNNG -> READY cb=11 rem=88 prio=0
+824 1 4: READY -> RUNNG cb=3 rem=20 prio=0
+827 1 3: RUNNG -> BLOCK ib=11 rem=17
+827 0 19: READY -> RUNNG cb=8 rem=170 prio=1
+831 0 4: RUNNG -> READY cb=4 rem=166 prio=1
+831 2 7: READY -> RUNNG cb=11 rem=88 prio=1
+835 2 4: RUNNG -> READY cb=7 rem=84 prio=1
+835 0 4: READY -> RUNNG cb=4 rem=166 prio=0
+838 1 11: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+838 0 3: RUNNG -> READY cb=0 rem=163 prio=0
+838 1 0: READY -> RUNNG cb=17 rem=17 prio=3
+842 1 4: RUNNG -> READY cb=13 rem=13 prio=3
+842 1 0: READY -> RUNNG cb=13 rem=13 prio=2
+846 1 4: RUNNG -> READY cb=9 rem=9 prio=2
+846 1 0: READY -> RUNNG cb=9 rem=9 prio=1
+850 1 4: RUNNG -> READY cb=5 rem=5 prio=1
+850 2 15: READY -> RUNNG cb=7 rem=84 prio=0
+854 2 4: RUNNG -> READY cb=3 rem=80 prio=0
+854 1 4: READY -> RUNNG cb=5 rem=5 prio=0
+858 1 4: RUNNG -> READY cb=1 rem=1 prio=0
+858 1 0: READY -> RUNNG cb=1 rem=1 prio=3
+859 1 0: DONE
+859 0 21: READY -> RUNNG cb=10 rem=163 prio=1
+863 0 4: RUNNG -> READY cb=6 rem=159 prio=1
+863 2 9: READY -> RUNNG cb=3 rem=80 prio=1
+866 2 3: RUNNG -> BLOCK ib=12 rem=77
+866 0 3: READY -> RUNNG cb=6 rem=159 prio=0
+870 0 4: RUNNG -> READY cb=2 rem=155 prio=0
+870 0 0: READY -> RUNNG cb=2 rem=155 prio=1
+872 0 2: RUNNG -> BLOCK ib=26 rem=153
+878 2 12: BLOCK -> READY
+878 2 0: READY -> RUNNG cb=20 rem=77 prio=1
+882 2 4: RUNNG -> READY cb=16 rem=73 prio=1
+882 2 0: READY -> RUNNG cb=16 rem=73 prio=0
+886 2 4: RUNNG -> READY cb=12 rem=69 prio=0
+886 2 0: READY -> RUNNG cb=12 rem=69 prio=1
+890 2 4: RUNNG -> READY cb=8 rem=65 prio=1
+890 2 0: READY -> RUNNG cb=8 rem=65 prio=0
+894 2 4: RUNNG -> READY cb=4 rem=61 prio=0
+894 2 0: READY -> RUNNG cb=4 rem=61 prio=1
+898 0 26: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=0-->NO
+898 2 4: RUNNG -> BLOCK ib=1 rem=57
+898 0 0: READY -> RUNNG cb=44 rem=153 prio=1
+899 2 1: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+902 0 4: RUNNG -> READY cb=40 rem=149 prio=1
+902 2 3: READY -> RUNNG cb=6 rem=57 prio=1
+906 2 4: RUNNG -> READY cb=2 rem=53 prio=1
+906 0 4: READY -> RUNNG cb=40 rem=149 prio=0
+910 0 4: RUNNG -> READY cb=36 rem=145 prio=0
+910 2 4: READY -> RUNNG cb=2 rem=53 prio=0
+912 2 2: RUNNG -> BLOCK ib=23 rem=51
+912 0 2: READY -> RUNNG cb=36 rem=145 prio=1
+916 0 4: RUNNG -> READY cb=32 rem=141 prio=1
+916 0 0: READY -> RUNNG cb=32 rem=141 prio=0
+920 0 4: RUNNG -> READY cb=28 rem=137 prio=0
+920 0 0: READY -> RUNNG cb=28 rem=137 prio=1
+924 0 4: RUNNG -> READY cb=24 rem=133 prio=1
+924 0 0: READY -> RUNNG cb=24 rem=133 prio=0
+928 0 4: RUNNG -> READY cb=20 rem=129 prio=0
+928 0 0: READY -> RUNNG cb=20 rem=129 prio=1
+932 0 4: RUNNG -> READY cb=16 rem=125 prio=1
+932 0 0: READY -> RUNNG cb=16 rem=125 prio=0
+935 2 23: BLOCK -> READY
+--> PrioPreempt Cond1=1Cond2=1-->YES
+935 0 3: RUNNG -> READY cb=12 rem=122 prio=0
+935 2 0: READY -> RUNNG cb=31 rem=51 prio=1
+939 2 4: RUNNG -> READY cb=27 rem=47 prio=1
+939 2 0: READY -> RUNNG cb=27 rem=47 prio=0
+943 2 4: RUNNG -> READY cb=23 rem=43 prio=0
+943 0 8: READY -> RUNNG cb=12 rem=122 prio=1
+947 0 4: RUNNG -> READY cb=8 rem=118 prio=1
+947 2 4: READY -> RUNNG cb=23 rem=43 prio=1
+951 2 4: RUNNG -> READY cb=19 rem=39 prio=1
+951 0 4: READY -> RUNNG cb=8 rem=118 prio=0
+955 0 4: RUNNG -> READY cb=4 rem=114 prio=0
+955 2 4: READY -> RUNNG cb=19 rem=39 prio=0
+959 2 4: RUNNG -> READY cb=15 rem=35 prio=0
+959 0 4: READY -> RUNNG cb=4 rem=114 prio=1
+963 0 4: RUNNG -> BLOCK ib=25 rem=110
+963 2 4: READY -> RUNNG cb=15 rem=35 prio=1
+967 2 4: RUNNG -> READY cb=11 rem=31 prio=1
+967 2 0: READY -> RUNNG cb=11 rem=31 prio=0
+971 2 4: RUNNG -> READY cb=7 rem=27 prio=0
+971 2 0: READY -> RUNNG cb=7 rem=27 prio=1
+975 2 4: RUNNG -> READY cb=3 rem=23 prio=1
+975 2 0: READY -> RUNNG cb=3 rem=23 prio=0
+978 2 3: RUNNG -> BLOCK ib=13 rem=20
+988 0 25: BLOCK -> READY
+988 0 0: READY -> RUNNG cb=40 rem=110 prio=1
+991 2 13: BLOCK -> READY
+--> PrioPreempt Cond1=0Cond2=1-->NO
+992 0 4: RUNNG -> READY cb=36 rem=106 prio=1
+992 2 1: READY -> RUNNG cb=20 rem=20 prio=1
+996 2 4: RUNNG -> READY cb=16 rem=16 prio=1
+996 0 4: READY -> RUNNG cb=36 rem=106 prio=0
+1000 0 4: RUNNG -> READY cb=32 rem=102 prio=0
+1000 2 4: READY -> RUNNG cb=16 rem=16 prio=0
+1004 2 4: RUNNG -> READY cb=12 rem=12 prio=0
+1004 0 4: READY -> RUNNG cb=32 rem=102 prio=1
+1008 0 4: RUNNG -> READY cb=28 rem=98 prio=1
+1008 2 4: READY -> RUNNG cb=12 rem=12 prio=1
+1012 2 4: RUNNG -> READY cb=8 rem=8 prio=1
+1012 0 4: READY -> RUNNG cb=28 rem=98 prio=0
+1016 0 4: RUNNG -> READY cb=24 rem=94 prio=0
+1016 2 4: READY -> RUNNG cb=8 rem=8 prio=0
+1020 2 4: RUNNG -> READY cb=4 rem=4 prio=0
+1020 0 4: READY -> RUNNG cb=24 rem=94 prio=1
+1024 0 4: RUNNG -> READY cb=20 rem=90 prio=1
+1024 2 4: READY -> RUNNG cb=4 rem=4 prio=1
+1028 2 0: DONE
+1028 0 4: READY -> RUNNG cb=20 rem=90 prio=0
+1032 0 4: RUNNG -> READY cb=16 rem=86 prio=0
+1032 0 0: READY -> RUNNG cb=16 rem=86 prio=1
+1036 0 4: RUNNG -> READY cb=12 rem=82 prio=1
+1036 0 0: READY -> RUNNG cb=12 rem=82 prio=0
+1040 0 4: RUNNG -> READY cb=8 rem=78 prio=0
+1040 0 0: READY -> RUNNG cb=8 rem=78 prio=1
+1044 0 4: RUNNG -> READY cb=4 rem=74 prio=1
+1044 0 0: READY -> RUNNG cb=4 rem=74 prio=0
+1048 0 4: RUNNG -> BLOCK ib=50 rem=70
+1098 0 50: BLOCK -> READY
+1098 0 0: READY -> RUNNG cb=47 rem=70 prio=1
+1102 0 4: RUNNG -> READY cb=43 rem=66 prio=1
+1102 0 0: READY -> RUNNG cb=43 rem=66 prio=0
+1106 0 4: RUNNG -> READY cb=39 rem=62 prio=0
+1106 0 0: READY -> RUNNG cb=39 rem=62 prio=1
+1110 0 4: RUNNG -> READY cb=35 rem=58 prio=1
+1110 0 0: READY -> RUNNG cb=35 rem=58 prio=0
+1114 0 4: RUNNG -> READY cb=31 rem=54 prio=0
+1114 0 0: READY -> RUNNG cb=31 rem=54 prio=1
+1118 0 4: RUNNG -> READY cb=27 rem=50 prio=1
+1118 0 0: READY -> RUNNG cb=27 rem=50 prio=0
+1122 0 4: RUNNG -> READY cb=23 rem=46 prio=0
+1122 0 0: READY -> RUNNG cb=23 rem=46 prio=1
+1126 0 4: RUNNG -> READY cb=19 rem=42 prio=1
+1126 0 0: READY -> RUNNG cb=19 rem=42 prio=0
+1130 0 4: RUNNG -> READY cb=15 rem=38 prio=0
+1130 0 0: READY -> RUNNG cb=15 rem=38 prio=1
+1134 0 4: RUNNG -> READY cb=11 rem=34 prio=1
+1134 0 0: READY -> RUNNG cb=11 rem=34 prio=0
+1138 0 4: RUNNG -> READY cb=7 rem=30 prio=0
+1138 0 0: READY -> RUNNG cb=7 rem=30 prio=1
+1142 0 4: RUNNG -> READY cb=3 rem=26 prio=1
+1142 0 0: READY -> RUNNG cb=3 rem=26 prio=0
+1145 0 3: RUNNG -> BLOCK ib=46 rem=23
+1191 0 46: BLOCK -> READY
+1191 0 0: READY -> RUNNG cb=23 rem=23 prio=1
+1195 0 4: RUNNG -> READY cb=19 rem=19 prio=1
+1195 0 0: READY -> RUNNG cb=19 rem=19 prio=0
+1199 0 4: RUNNG -> READY cb=15 rem=15 prio=0
+1199 0 0: READY -> RUNNG cb=15 rem=15 prio=1
+1203 0 4: RUNNG -> READY cb=11 rem=11 prio=1
+1203 0 0: READY -> RUNNG cb=11 rem=11 prio=0
+1207 0 4: RUNNG -> READY cb=7 rem=7 prio=0
+1207 0 0: READY -> RUNNG cb=7 rem=7 prio=1
+1211 0 4: RUNNG -> READY cb=3 rem=3 prio=1
+1211 0 0: READY -> RUNNG cb=3 rem=3 prio=0
+1214 0 0: DONE
 PREPRIO 4
-0000:    0  400   50   50 2 |  1450  1450   756   295
-0001:  101  300   41   40 4 |   934   833   381   152
-0002:  202  200   32   50 2 |  1099   897   489   212
-0003:  303  100   23   10 4 |   527   224    31    93
-SUM: 1450 68.97 68.34 851.00 188.00 0.276
+0000:    0  400   50   50 2 |  1214  1214   334   480
+0001:  101  300   41   40 4 |   859   758   283   175
+0002:  202  200   32   50 2 |  1028   826   258   368
+0003:  303  100   23   10 4 |   570   267    48   119
+SUM: 1214 82.37 55.02 766.25 285.50 0.329

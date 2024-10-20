@@ -51,7 +51,7 @@
 186 0 10: RUNNG -> BLOCK ib=10 rem=5
 196 0 10: BLOCK -> READY
 196 0 0: READY -> RUNNG cb=5 rem=5 prio=1
-201 0 5: DONE
+201 0 0: DONE
 500 1 0: CREATED -> READY
 500 1 0: READY -> RUNNG cb=8 rem=100 prio=3
 508 1 8: RUNNG -> BLOCK ib=10 rem=92
@@ -75,7 +75,7 @@
 618 1 16: RUNNG -> BLOCK ib=2 rem=7
 620 1 2: BLOCK -> READY
 620 1 0: READY -> RUNNG cb=7 rem=7 prio=3
-627 1 7: DONE
+627 1 0: DONE
 LCFS
 0000:    0  100   10   10 2 |   201   201   101     0
 0001:  500  100   20   10 4 |   627   127    27     0

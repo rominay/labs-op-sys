@@ -17,7 +17,7 @@
 76 2 9: BLOCK -> READY
 78 0 11: RUNNG -> BLOCK ib=64 rem=149
 78 2 2: READY -> RUNNG cb=4 rem=4 prio=1
-82 2 4: DONE
+82 2 0: DONE
 82 1 16: READY -> RUNNG cb=2 rem=93 prio=3
 84 1 2: RUNNG -> BLOCK ib=2 rem=91
 84 3 24: READY -> RUNNG cb=4 rem=200 prio=3
@@ -132,7 +132,7 @@
 426 3 1: RUNNG -> BLOCK ib=14 rem=149
 428 1 12: BLOCK -> READY
 428 1 0: READY -> RUNNG cb=4 rem=4 prio=3
-432 1 4: DONE
+432 1 0: DONE
 440 3 14: BLOCK -> READY
 440 3 0: READY -> RUNNG cb=3 rem=149 prio=3
 443 3 3: RUNNG -> BLOCK ib=11 rem=146
@@ -151,7 +151,7 @@
 518 3 1: RUNNG -> BLOCK ib=2 rem=135
 518 0 1: READY -> RUNNG cb=31 rem=31 prio=1
 520 3 2: BLOCK -> READY
-549 0 31: DONE
+549 0 0: DONE
 549 3 29: READY -> RUNNG cb=5 rem=135 prio=3
 554 3 5: RUNNG -> BLOCK ib=5 rem=130
 559 3 5: BLOCK -> READY
@@ -282,7 +282,7 @@
 1134 3 5: RUNNG -> BLOCK ib=3 rem=3
 1137 3 3: BLOCK -> READY
 1137 3 0: READY -> RUNNG cb=3 rem=3 prio=3
-1140 3 3: DONE
+1140 3 0: DONE
 LCFS
 0000:    0  200   40   90 2 |   549   549   330    19
 0001:   40  100   10   40 4 |   432   392   235    57

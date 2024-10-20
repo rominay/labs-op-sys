@@ -25,7 +25,7 @@
 76 3 4: READY -> RUNNG cb=2 rem=199 prio=3
 78 3 2: RUNNG -> BLOCK ib=16 rem=197
 78 2 2: READY -> RUNNG cb=4 rem=4 prio=1
-82 2 4: DONE
+82 2 0: DONE
 82 1 6: READY -> RUNNG cb=5 rem=87 prio=3
 87 1 5: RUNNG -> BLOCK ib=39 rem=82
 94 3 16: BLOCK -> READY
@@ -163,7 +163,7 @@
 528 1 25: BLOCK -> READY
 528 1 0: READY -> RUNNG cb=4 rem=4 prio=3
 529 3 12: BLOCK -> READY
-532 1 4: DONE
+532 1 0: DONE
 532 3 3: READY -> RUNNG cb=4 rem=131 prio=3
 536 3 4: RUNNG -> BLOCK ib=10 rem=127
 546 3 10: BLOCK -> READY
@@ -180,7 +180,7 @@
 574 0 21: BLOCK -> READY
 574 3 1: RUNNG -> BLOCK ib=14 rem=122
 574 0 0: READY -> RUNNG cb=1 rem=1 prio=1
-575 0 1: DONE
+575 0 0: DONE
 588 3 14: BLOCK -> READY
 588 3 0: READY -> RUNNG cb=5 rem=122 prio=3
 593 3 5: RUNNG -> BLOCK ib=16 rem=117
@@ -309,7 +309,7 @@
 1170 3 3: RUNNG -> BLOCK ib=3 rem=1
 1173 3 3: BLOCK -> READY
 1173 3 0: READY -> RUNNG cb=1 rem=1 prio=3
-1174 3 1: DONE
+1174 3 0: DONE
 FCFS
 0000:    0  200   40   90 2 |   575   575   360    15
 0001:   40  100   10   40 4 |   532   492   300    92

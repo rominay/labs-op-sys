@@ -7,6 +7,7 @@
 #include <unistd.h> // For getopt
 #include <cstdlib>  // For exit()
 #include <regex>
+#include <vector>
 
 using namespace std;
 
@@ -26,17 +27,20 @@ int totalIO = 0;
 int maxprio;
 int last_event_FT;
 int totalIOTime = 0; 
+int CURRENT_TIME;
 
-typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
+
+typedef enum {STATE_CREATED, STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DONE} process_state_t; //STATE_PREEMPT
 
 const char* stateToString(process_state_t state) {
     switch (state) {
+        case STATE_CREATED:     return "CREATED";
         case STATE_READY:    return "READY";
         case STATE_RUNNING:  return "RUNNG";
         case STATE_BLOCKED:  return "BLOCK";
-        case STATE_PREEMPT:  return "STATE_PREEMPT";
+        //case STATE_PREEMPT:  return "STATE_PREEMPT";
         case STATE_DONE:     return "DONE";
-        default:             return "Unknown State";
+        //default:             return "Unknown State";
     }
 }
 
@@ -64,7 +68,7 @@ public:
   int state_ts; // this is the time at which it was put to ready 
   int time_prev_state; // the amount of time in previous state
   int pid; // identifier
-  string old_state="CREATED";
+  process_state_t old_state=STATE_CREATED;
   // constructor
   Process(int AT, int TC, int CB, int IO, int pid){
     this->AT = AT;
@@ -97,7 +101,6 @@ public:
   int get_time_prev_state() const {return time_prev_state;}
   int get_remaining_time() const {return TC - CPU_time;}
   // add setters
-  //void set_oldstate(process_state_t new_old_state) {old_state=new_old_state;}
   void set_remaining_CPU_burst(int new_remaining_CPU_burst){remaining_CPU_burst=new_remaining_CPU_burst;}
   void set_FT(int new_FT) { FT=new_FT; }
   void set_state_ts(int new_state_ts) {state_ts=new_state_ts;}
@@ -118,9 +121,7 @@ private:
   int timestamp; 
   string oldstate;
   string newstate;
-  //int pid;
   Process* process;
-  //int process;
   process_state_t transition; 
 public:
   // constructor
@@ -131,11 +132,9 @@ public:
   }
   // getters
   int get_timestamp() const {return timestamp;}
-  //int get_pid() const {return pid;}
   string get_oldstate() const { return oldstate; }
   string get_newstate() const { return newstate; } 
   Process* get_process() const {return process;}
-  //int get_process() const {return process;} 
   process_state_t get_transition() const {return transition;}
   // setters 
   void set_timestamp(int newTimestamp){timestamp=newTimestamp;}
@@ -148,7 +147,6 @@ list<Event*> a_list;
 
 class DesLayer{
 private:
-  //list<Event*> eventQ;
 public:
   list<Event*> eventQ;
   // getters
@@ -162,7 +160,6 @@ public:
   }
   // setters
   void put_event(int AT, Process* process, process_state_t transition){
-    //cout << "AddEvent(" << AT << ":" << process->pid << ":" << stateToString(transition)  << ")" << endl; // to comment
     Event* newEvent = new Event(AT, process, transition);
     if (eventQ.empty()) {eventQ.push_back(newEvent);} // we take the first element as sorted 
     else{ // insert in the correct position
@@ -183,31 +180,32 @@ public:
   
 };
 
+DesLayer deslayer;
+Process* current_running_process;
+
 
 // Base class for scheduling
 class BaseScheduler {
 public:
-    //queue<Process*> runQueue;
-    int quantum;
     virtual ~BaseScheduler() {} // virtual destructor 
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
-    //virtual int get_quantum() = 0;
-    //virtual bool test_preempt(Process* activated_process);
+    void virtual handle_preemption(Process* proc, Process* CRP, int time) = 0;
 };
 BaseScheduler *scheduler;
+
+
 // FCFS Scheduler 
 class FCFSScheduler : public BaseScheduler {
 private:
     queue<Process*> runQueue; 
 
 public:
-    //queue<Process*> runQueue;
+    void handle_preemption(Process* proc, Process* CRP, int time){};
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
-            //cout << "No processes in the queue." << endl;
             return NULL; 
         }
         Process* nextProcess = runQueue.front();  
@@ -224,6 +222,7 @@ class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
 
 public:
+  void handle_preemption(Process* proc, Process* CRP, int time){};
   string get_type() override {return "LCFS";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -239,26 +238,36 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	priority_queue<Process *, vector<Process*>, CompareRemainingTime> runQueue;
+	vector <Process *> runQueue;
 public:
-  string get_type() override {return "SRTF";}
-	Process *get_next_process() override {
-		if (runQueue.empty()){
+    void handle_preemption(Process* proc, Process* CRP, int time){};
+    string get_type() override {return "SRTF";}
+    Process *get_next_process() override {
+	    if (runQueue.empty()){
 			return NULL;
 		}
-		Process* nextProcess = runQueue.top();
-    runQueue.pop();
-    return nextProcess;
-	}
+		int shortestremainTime = runQueue[0]->get_remaining_time();
+        int shortestIndex = 0;
+        for(int i=1;i<runQueue.size();i++){
+        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
+            shortestremainTime=runQueue[i]->get_remaining_time();
+            shortestIndex = i;
+        }
+        }
+        Process* nextProcess = runQueue[shortestIndex];
+        runQueue.erase(runQueue.begin()+shortestIndex);;
+        return nextProcess;
+        }
 
-  void add_process(Process *p) override {
-		runQueue.push(p);
+    void add_process(Process *p) override {
+        runQueue.push_back(p);
 	}
 };
 
 class RoundRobinScheduler : public BaseScheduler{
 	queue<Process *> runQueue;
 public:
+  void handle_preemption(Process* proc, Process* CRP, int time){};
   string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -271,48 +280,174 @@ public:
   void add_process(Process *p) override {
 		runQueue.push(p);
 	}
-  //int get_quantum() override {
-  //  return quantum;
-  //}
 };
 
 
-DesLayer deslayer;
-Process* current_running_process;
 
-
-//void print_scheduler(){
-// show scheduler 
-  //cout <<  "SCHED ";
-  //queue <Process*> q = scheduler->runQueue; 
-  //while (!q.empty()) {
-  //  Process* front = q.front();
-  //  cout << front->pid  << ":" << front->AT << " ";
-  //  q.pop(); // Remove the element from the queue
-  //}
-  //cout << endl;
-//};
-
-void print_eventQ(){
-  // show event Q
-  cout << "EventQ "; 
-  for (auto ev : deslayer.eventQ){
-    Process* proc = ev->get_process();
-    cout << ev->get_timestamp() << ":" << proc->pid << " ";
+bool isEmpty(queue<Process*> a_queue[]){
+  for (int i=0; i<maxprio; i++){
+    if (a_queue[i].size() != 0) {
+      return false;
+    }
   }
-  cout << endl;
+  return true;
 };
+
+class PRIOScheduler : public BaseScheduler{
+public:
+	queue<Process*>* activeQ; 
+  queue<Process*>* expiredQ;
+  PRIOScheduler(){// TO DO: pass maxprio?
+    activeQ = new queue<Process*>[maxprio];
+    expiredQ = new queue<Process*>[maxprio];
+
+  }
+  ~PRIOScheduler() {
+    delete activeQ;
+  }
+  
+
+  void handle_preemption(Process* proc, Process* CRP, int time){};
+	Process* get_next_process() override {
+    if (isEmpty(activeQ) && isEmpty(expiredQ)){
+      return nullptr;
+    }
+    if (isEmpty(activeQ)){
+      // we swap the pointers
+      queue<Process*>* tempQ = activeQ;
+      activeQ = expiredQ;
+      expiredQ = tempQ;
+    }
+    Process* nextProcess;
+    for (int i=maxprio-1; i>=0; --i){ // we go over higher priority to less priority
+      if (!activeQ[i].empty()) {
+        nextProcess = activeQ[i].front();
+        activeQ[i].pop();
+        return nextProcess;
+      }
+    }
+  }
+
+  void add_process(Process *p) override {
+    if (p->dynamic_priority == -1){
+      p->dynamic_priority = p->static_priority-1; // it is reset
+      expiredQ[p->dynamic_priority].push(p);
+      return;
+      
+    } 
+    activeQ[p->dynamic_priority].push(p);
+	}
+  string get_type() override {return "PRIO";}
+};
+
+class EPRIOScheduler : public BaseScheduler {
+public:
+    queue<Process*>* activeQ;
+    queue<Process*>* expiredQ;
+
+    EPRIOScheduler() {
+        activeQ = new queue<Process*>[maxprio];
+        expiredQ = new queue<Process*>[maxprio];
+    }
+
+    ~EPRIOScheduler() {
+        delete[] activeQ;
+    }
+
+    Process* get_next_process() override {
+      for (size_t i=0; i<2;i++){
+        Process* nextProcess;
+        for (int i = maxprio - 1; i >= 0; --i) { // Prioritize higher dynamic priorities
+          if (!activeQ[i].empty()) {
+              nextProcess = activeQ[i].front();
+              activeQ[i].pop();
+              return nextProcess;
+          }
+        }
+
+        if (isEmpty(activeQ)) {
+            // Swap active and expired queues if active is empty
+            queue<Process*>* tempQ = activeQ;
+            activeQ = expiredQ;
+            expiredQ = tempQ;
+        }
+      }
+      return nullptr;
+    }
+
+    void add_process(Process* p) override {
+        //handle_preemption(p, current_running_process, CURRENT_TIME);
+        if (p->dynamic_priority == -1) {
+            p->dynamic_priority = p->static_priority - 1; 
+            expiredQ[p->dynamic_priority].push(p);
+            return;
+        }
+        activeQ[p->dynamic_priority].push(p);
+    }
+
+    string get_type() override {
+        return "PREPRIO";
+    }
+
+    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
+        // if readyProcess process has a higher dynamic prio than current_running_process
+        if (runningProcess != nullptr) { 
+          if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
+              !has_pending_event(runningProcess, currentTime)) {
+              
+            remove_future_events(runningProcess);
+
+            // make preemption
+            process_state_t transition = STATE_READY;
+            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;// TODO: change
+            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // TODO: change. we did not complete the burst 
+            deslayer.put_event(currentTime, runningProcess, transition);
+
+            // make the process ready
+            transition = STATE_READY;//STATE_RUNNING;
+            //deslayer.put_event(currentTime, readyProcess, transition);
+          }
+        }
+    }
+
+private:
+    bool has_pending_event(Process* proc, int currentTime) {
+        for (auto ev : deslayer.eventQ) {
+            if (ev->get_process() == proc && ev->get_timestamp() == currentTime) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void remove_future_events(Process* proc) {
+        auto it = deslayer.eventQ.begin();
+        while (it != deslayer.eventQ.end()) {
+            if ((*it)->get_process() == proc) {
+                it = deslayer.eventQ.erase(it); 
+            } else {
+                ++it;
+            }
+        }
+    }
+};
+
+
+
+
+
 void simulation(){
   Event* event;
-  int CURRENT_TIME;
+  //int CURRENT_TIME;
   bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
 
+
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 44) {
+    //if (CURRENT_TIME == 201) {
     //  printf("here");
     //}
     process_state_t transition = event->get_transition();
@@ -326,49 +461,44 @@ void simulation(){
     delete event; event = nullptr;
 
     switch(transition){
-      case STATE_READY: // TRANS_TO_READY
-        scheduler->add_process(proc);
-        CALL_SCHEDULER = true;
+      case STATE_READY: 
         if (verbose) {
-          if (proc->old_state=="RUNNG"){ //|| proc->old_state=="PREEMP"
+          if (proc->old_state==STATE_RUNNING){ 
             cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
             cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
           }
           else {
-            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << stateToString(proc->old_state)<<" -> "<< "READY" << endl;
           }
         }
-        
-        if (proc->old_state=="BLOCK"){ // it came from blocked
+
+        if (proc->old_state==STATE_BLOCKED){ // it not the first time put on ready
+          // post-accounting:
+          proc->IT += timeInPrevState;
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
-         }
+          }
+          proc->dynamic_priority = proc->static_priority-1; // after coming from IO it is reset like this
         }
-        proc->old_state="READY";
+
+        if (proc->old_state==STATE_RUNNING) {
+          // post-accounting:
+          proc->CPU_time += timeInPrevState;
+          current_running_process=nullptr;
+          proc->dynamic_priority-=1; // we came from preemption
+        }
+        CALL_SCHEDULER = true;
+        proc->old_state=STATE_READY;
+        scheduler->add_process(proc);
+        scheduler-> handle_preemption(proc, current_running_process, CURRENT_TIME);
         break;
-      //case STATE_PREEMPT: // similar to TRANS_TO_READY
-        // must come from RUNNING (preemption)
-        // add to runqueue (no event is generated)
-      //  {
-      //  proc->dynamic_priority-=1;
-      //  if (proc->dynamic_priority==-1) proc->dynamic_priority=proc->static_priority-1; // TO DO: check if this is correct
-      //  scheduler->add_process(proc);
-      //  CALL_SCHEDULER = true;
-        
-        //if (verbose) {
-				//	cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "PREEMP" <<endl;
-				//}
-        
-      //  proc->old_state="READY";
-        
-      //  break;
-      //  }
+      
       case STATE_RUNNING:
         {
+        current_running_process = proc;
         int CPU_burst;
         // create event for either preemption or blocking
-        current_running_process = proc;
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
@@ -379,7 +509,7 @@ void simulation(){
         else{ // we get a new CPU bust 
           CPU_burst= myrandom(proc->get_CB());
           // the CPU_time of a process is the total time it used CPU 
-          int remaining_CPU_time = proc->get_TC() - (*proc).CPU_time;
+          int remaining_CPU_time = proc->get_TC() - proc->CPU_time;
           if (remaining_CPU_time < CPU_burst){//if the remaining time is less than the CPU_burst , we run for the remaining time
             time_to_run = remaining_CPU_time;
           }
@@ -389,38 +519,38 @@ void simulation(){
         }
 
         if (verbose) {
-          string old_state = proc->old_state;
-          //if (old_state=="PREEMPT") {old_state="READY";}
-					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< old_state <<" -> "<<"RUNNG";
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< stateToString(proc->old_state) <<" -> "<<"RUNNG";
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
-        //cout << quantum <<endl;
         if (time_to_run > quantum){ // we will not finish 
-          (*proc).CPU_time += quantum;
+          //(*proc).CPU_time += quantum;
           proc->set_remaining_CPU_burst(time_to_run-quantum);
-          current_running_process=nullptr;
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
         else{ // it goes to I/O
-          (*proc).CPU_time += time_to_run;
+          //(*proc).CPU_time += time_to_run;
           process_state_t transition;
           proc->set_remaining_CPU_burst(0);
-          if ((*proc).CPU_time < proc->get_TC()){ // we are still not done
-            transition = STATE_BLOCKED;
-          }
-          else{ // we are done 
-            transition = STATE_DONE; 
-            proc->set_FT(CURRENT_TIME+time_to_run);
-          }
+          transition = STATE_BLOCKED;
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
-        proc->old_state="RUNNG";
+        proc->old_state=STATE_RUNNING;
         break;
         }
         
       case STATE_BLOCKED:
         {
+        // post-accounting:
+        proc->CPU_time += timeInPrevState;
+        // check if we are done
+        if (proc->CPU_time >= proc->get_TC()){ 
+          transition = STATE_DONE; 
+          proc->set_FT(CURRENT_TIME);
+          deslayer.put_event(CURRENT_TIME, proc, transition);
+          break;
+        }
+
         activeIOCount++; // it is doing IO 
         if (activeIOCount == 1) {  // transition 0 -> 1 
           lastIOTransitionTime = CURRENT_TIME;
@@ -428,15 +558,15 @@ void simulation(){
         //create an event for when process becomes READY again
         int IO_burst= myrandom(proc->get_IO());
         if (verbose) {
-					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< proc->old_state <<" -> "<<"BLOCK";
+					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< stateToString(proc->old_state) <<" -> "<<"BLOCK";
 					cout <<" ib="<< IO_burst <<" rem="<<proc->TC-proc->CPU_time <<endl;
 				}
-        (*proc).IT += IO_burst;
+        //(*proc).IT += IO_burst;
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
         current_running_process = nullptr;
-        proc->old_state="BLOCK";
+        proc->old_state=STATE_BLOCKED;
         break;
         }
 
@@ -445,8 +575,8 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
 				}
         last_event_FT = CURRENT_TIME;
-        current_running_process = nullptr;
-        proc->old_state="DONE";
+        proc->old_state=STATE_DONE;
+        current_running_process=nullptr;
         CALL_SCHEDULER=true;
     }
 
@@ -458,14 +588,12 @@ void simulation(){
       CALL_SCHEDULER = false;
       if (current_running_process == nullptr){
         current_running_process = scheduler->get_next_process();
-        
         if (current_running_process == nullptr){
           continue;
         }
         // create event to make this process runnable for same time
         process_state_t transition = STATE_RUNNING;
 				deslayer.put_event(CURRENT_TIME, current_running_process, transition);
-				current_running_process = nullptr;
       }
     }
   }
@@ -482,76 +610,7 @@ void display_help() {
     exit(0);
 }
 
-// Function to parse the scheduling specification
-bool parse_schedspec(const std::string& spec) {
-    // Case 1: FLS (no arguments)
-    if (spec == "F") {
-      scheduler = new FCFSScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
-    if (spec == "L") {
-      scheduler = new LCFSScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
-    if (spec == "S") {
-      scheduler = new SRTFScheduler();
-      quantum = 10000;
-      maxprio = 4; 
-      return true;
-    }
 
-
-    // Case 2: R<num> (e.g., R100)
-    std::regex r_regex("^R([0-9]+)$");
-    std::smatch r_match;
-    if (std::regex_match(spec, r_match, r_regex)) {
-        //std::cout << "Scheduling specification: R<num>\n";
-        //std::cout << "  num: " << r_match[1] << std::endl;
-        scheduler = new RoundRobinScheduler();
-        //quantum = 10000;
-        maxprio = 4; 
-        string str_quantum = r_match[1];
-        quantum = stoi(str_quantum);
-        //cout << "quantum: " << quantum << endl;
-        return true;
-    }
-
-    // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
-    std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
-    std::smatch p_match;
-    if (std::regex_match(spec, p_match, p_regex)) {
-        std::cout << "Scheduling specification: P<num>[:<maxprio>]\n";
-        std::cout << "  num: " << p_match[1];
-        if (p_match[2].length() > 0) {
-            std::cout << ", maxprio: " << p_match[2];
-        }
-        std::cout << std::endl;
-        return true;
-
-    }
-
-    // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
-    std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
-    std::smatch e_match;
-    if (std::regex_match(spec, e_match, e_regex)) {
-        std::cout << "Scheduling specification: E<num>[:<maxprios>]\n";
-        std::cout << "  num: " << e_match[1];
-        if (e_match[2].length() > 0) {
-            std::cout << ", maxprios: " << e_match[2];
-        }
-        std::cout << std::endl;
-        return true;
-    }
-
-    // Invalid format
-    std::cerr << "Invalid scheduling specification format: " << spec << std::endl;
-    return false;
-}
- 
 
 int main(int argc, char *argv[]){
   /*
@@ -575,13 +634,6 @@ int main(int argc, char *argv[]){
               break;
       }
   }
-  //if (!schedspec.empty()) std::cout << "Scheduling specification: " << schedspec << std::endl;
-  parse_schedspec(schedspec);
-  // Ensure that the required input and random files are provided
-  if (optind + 2 > argc) {
-      std::cerr << "Error: Missing inputfile or randfile.\n";
-      display_help();
-  }
 
   char* input_file = argv[optind];
   string rand_file = argv[optind + 1];
@@ -602,9 +654,68 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input2","r");
+  //inputfile = fopen("lab2_assign/input0","r");
   inputfile = fopen(input_file,"r");
-  maxprio=4;
+  //verbose = true;
+  //schedspec="F";
+  if (schedspec == "F") {
+    scheduler = new FCFSScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+  }
+  if (schedspec == "L") {
+    scheduler = new LCFSScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+  }
+  if (schedspec == "S") {
+    scheduler = new SRTFScheduler();
+    quantum = 10000;
+    maxprio = 4; 
+  }
+
+
+  // Case 2: R<num> (e.g., R100)
+  std::regex r_regex("^R([0-9]+)$");
+  std::smatch r_match;
+  if (std::regex_match(schedspec, r_match, r_regex)) {
+      scheduler = new RoundRobinScheduler();
+      maxprio = 4; 
+      string str_quantum = r_match[1];
+      quantum = stoi(str_quantum);
+  }
+
+  // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
+  std::regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
+  std::smatch p_match;
+  if (std::regex_match(schedspec, p_match, p_regex)) {
+      string str_quantum = p_match[1];
+      quantum = stoi(str_quantum); // TO DO: check if quantum is required
+      if (p_match[2].length() > 0) {
+        string str_maxprios = p_match[2];
+        maxprio = stoi(str_maxprios);
+      } else{
+        maxprio=4;
+      }
+      scheduler = new PRIOScheduler();
+  }
+
+  // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
+  std::regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
+  std::smatch e_match;
+  if (std::regex_match(schedspec, e_match, e_regex)) {
+      string str_quantum = e_match[1];
+      quantum = stoi(str_quantum); 
+      if (e_match[2].length() > 0) {
+        string str_maxprios = e_match[2];
+        maxprio = stoi(str_maxprios);
+      } else{
+        maxprio=4;
+      }
+      scheduler = new EPRIOScheduler();
+  }
+  
+  
   int AT;
   int pid=0;
   while (1){   
@@ -639,19 +750,16 @@ int main(int argc, char *argv[]){
   /*
   * Logic for the quantum
   */
-  //scheduler = new RoundRobinScheduler();
-  //if (scheduler->get_type() == "FCFS"){
-  //quantum = 2;
-  //maxprio=4;
+
   //verbose=true;
- // }
+
   simulation();
   /*
   * Output
   */ 
   string type = scheduler->get_type();
   cout<<type;
-  if (type == "RR") { 
+  if (type == "RR" || type == "PRIO" || type == "PREPRIO") { 
     cout << " " << quantum;
   }
   cout << endl;
@@ -673,7 +781,6 @@ int main(int argc, char *argv[]){
   /*
   * Summary information
   */
-  //printf(last_event_FT);
   double utilization_CPU = 100.0*(totalCPU/(double)last_event_FT);
 	double utilization_IO = 100.0*((totalIOTime)/(double)last_event_FT);
 

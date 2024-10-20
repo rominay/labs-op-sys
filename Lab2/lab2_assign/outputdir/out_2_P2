@@ -66,16 +66,16 @@
 133 0 0: READY -> RUNNG cb=3 rem=3 prio=0
 135 0 2: RUNNG -> READY cb=1 rem=1 prio=0
 135 1 4: READY -> RUNNG cb=1 rem=1 prio=3
-136 1 1: DONE
+136 1 0: DONE
 136 2 13: READY -> RUNNG cb=2 rem=6 prio=1
 138 2 2: RUNNG -> BLOCK ib=19 rem=4
 138 0 3: READY -> RUNNG cb=1 rem=1 prio=1
-139 0 1: DONE
+139 0 0: DONE
 157 2 19: BLOCK -> READY
 157 2 0: READY -> RUNNG cb=4 rem=4 prio=1
 159 2 2: RUNNG -> READY cb=2 rem=2 prio=1
 159 2 0: READY -> RUNNG cb=2 rem=2 prio=0
-161 2 2: DONE
+161 2 0: DONE
 PRIO 2
 0000:    1   20   10   80 2 |   139   138   107    11
 0001:    1   20   10   70 4 |   136   135   111     4

@@ -31,7 +31,7 @@
 91 0 16: BLOCK -> READY
 103 1 19: RUNNG -> BLOCK ib=10 rem=62
 103 2 14: READY -> RUNNG cb=2 rem=2 prio=1
-105 2 2: DONE
+105 2 0: DONE
 105 0 14: READY -> RUNNG cb=17 rem=65 prio=1
 113 1 10: BLOCK -> READY
 122 0 17: RUNNG -> BLOCK ib=3 rem=48
@@ -48,13 +48,13 @@
 189 1 1: BLOCK -> READY
 207 0 19: RUNNG -> BLOCK ib=10 rem=17
 207 1 18: READY -> RUNNG cb=8 rem=8 prio=3
-215 1 8: DONE
+215 1 0: DONE
 217 0 10: BLOCK -> READY
 217 0 0: READY -> RUNNG cb=15 rem=17 prio=1
 232 0 15: RUNNG -> BLOCK ib=8 rem=2
 240 0 8: BLOCK -> READY
 240 0 0: READY -> RUNNG cb=2 rem=2 prio=1
-242 0 2: DONE
+242 0 0: DONE
 1000 3 0: CREATED -> READY
 1000 3 0: READY -> RUNNG cb=4 rem=50 prio=3
 1004 3 4: RUNNG -> BLOCK ib=1 rem=46
@@ -87,7 +87,7 @@
 1074 3 6: RUNNG -> BLOCK ib=3 rem=1
 1077 3 3: BLOCK -> READY
 1077 3 0: READY -> RUNNG cb=1 rem=1 prio=3
-1078 3 1: DONE
+1078 3 0: DONE
 SRTF
 0000:    1  100   20   20 2 |   242   241    60    81
 0001:    1  100   30   10 4 |   215   214    27    87

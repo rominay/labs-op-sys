@@ -15,7 +15,7 @@
 55 2 9: RUNNG -> BLOCK ib=11 rem=2
 66 2 11: BLOCK -> READY
 66 2 0: READY -> RUNNG cb=2 rem=2 prio=1
-68 2 2: DONE
+68 2 0: DONE
 77 1 67: BLOCK -> READY
 77 1 0: READY -> RUNNG cb=6 rem=13 prio=3
 83 1 6: RUNNG -> BLOCK ib=22 rem=7
@@ -30,10 +30,10 @@
 138 0 9: RUNNG -> BLOCK ib=65 rem=6
 143 1 36: BLOCK -> READY
 143 1 0: READY -> RUNNG cb=5 rem=5 prio=3
-148 1 5: DONE
+148 1 0: DONE
 203 0 65: BLOCK -> READY
 203 0 0: READY -> RUNNG cb=6 rem=6 prio=1
-209 0 6: DONE
+209 0 0: DONE
 SRTF
 0000:    1   20   10   80 2 |   209   208   188     0
 0001:    1   20   10   70 4 |   148   147   125     2

@@ -24,16 +24,16 @@
 119 2 4: RUNNG -> BLOCK ib=12 rem=9
 126 0 51: BLOCK -> READY
 126 0 0: READY -> RUNNG cb=2 rem=2 prio=1
-128 0 2: DONE
+128 0 0: DONE
 131 2 12: BLOCK -> READY
 131 2 0: READY -> RUNNG cb=9 rem=9 prio=1
-140 2 9: DONE
+140 2 0: DONE
 143 1 62: BLOCK -> READY
 143 1 0: READY -> RUNNG cb=5 rem=11 prio=3
 148 1 5: RUNNG -> BLOCK ib=39 rem=6
 187 1 39: BLOCK -> READY
 187 1 0: READY -> RUNNG cb=6 rem=6 prio=3
-193 1 6: DONE
+193 1 0: DONE
 LCFS
 0000:    1   20   10   80 2 |   128   127    98     9
 0001:    1   20   10   70 4 |   193   192   168     4
