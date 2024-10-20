@@ -458,7 +458,7 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 123) {
+    //if (CURRENT_TIME == 1289) {
     //  printf("here");
     //}
     process_state_t transition = event->get_transition();
@@ -482,7 +482,9 @@ void simulation(){
           if (activeIOCount == 0) {  // transition 1 -> 0 
             totalIOTime += CURRENT_TIME - lastIOTransitionTime;
           }
-          proc->dynamic_priority = proc->static_priority-1; // after coming from IO it is reset like this
+          if (scheduler->get_type() == "PRIO" || scheduler->get_type() == "PREPRIO"){
+            proc->dynamic_priority = proc->static_priority-1; // after coming from IO it is reset like this
+          }
         }
 
         if (proc->old_state==STATE_RUNNING) {
@@ -491,7 +493,9 @@ void simulation(){
           proc->remaining_CPU_burst-=timeInPrevState;
           proc->CPU_time += timeInPrevState;
           current_running_process=nullptr;
-          proc->dynamic_priority-=1; // we came from preemption
+          if (scheduler->get_type() == "PRIO" || scheduler->get_type() == "PREPRIO"){
+            proc->dynamic_priority-=1; // we came from preemption
+          }
         }
         
 
@@ -534,9 +538,10 @@ void simulation(){
             time_to_run = remaining_CPU_time;
           }
           else {// we run for the CPU_burst
-            proc->remaining_CPU_burst = CPU_burst;
+            //proc->remaining_CPU_burst = CPU_burst;
             time_to_run = CPU_burst;
           }
+          proc->remaining_CPU_burst = time_to_run;
         }
 
         if (verbose) {
@@ -564,11 +569,20 @@ void simulation(){
         {
         // post-accounting:
         proc->CPU_time += timeInPrevState;
+        proc->remaining_CPU_burst=0;
         // check if we are done
         if (proc->CPU_time >= proc->get_TC()){ 
-          transition = STATE_DONE; 
+          //transition = STATE_DONE; 
           proc->set_FT(CURRENT_TIME);
-          deslayer.put_event(CURRENT_TIME, proc, transition);
+          //deslayer.put_event(CURRENT_TIME, proc, transition);
+          if (verbose) {
+            cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
+          }
+          last_event_FT = CURRENT_TIME;
+          proc->old_state=STATE_DONE;
+          current_running_process=nullptr;
+          CALL_SCHEDULER=true;
+
           break;
         }
 
@@ -591,14 +605,14 @@ void simulation(){
         break;
         }
 
-      case STATE_DONE:
-        if (verbose) {
-					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
-				}
-        last_event_FT = CURRENT_TIME;
-        proc->old_state=STATE_DONE;
-        current_running_process=nullptr;
-        CALL_SCHEDULER=true;
+      //case STATE_DONE:
+      //  if (verbose) {
+		 //			cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
+			//	}
+      //  last_event_FT = CURRENT_TIME;
+      //  proc->old_state=STATE_DONE;
+      //  current_running_process=nullptr;
+       // CALL_SCHEDULER=true;
     }
 
     if (CALL_SCHEDULER) {
@@ -665,8 +679,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  ifstream randfile("lab2_assign/rfile");
-  //ifstream randfile(rand_file);
+  //ifstream randfile("lab2_assign/rfile");
+  ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -675,10 +689,10 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input0","r");
-  //inputfile = fopen(input_file,"r");
-  verbose = true;
-  schedspec="R2";
+  //inputfile = fopen("lab2_assign/input1","r");
+  inputfile = fopen(input_file,"r");
+  //verbose = true;
+  //schedspec="R2";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
