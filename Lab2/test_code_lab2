@@ -1,0 +1,46 @@
+
+--- test for one input and args
+
+./sched -sF "input0" "rfile" > /tmp/ryout;  ~frankeh/Public/lab2/sched -sF "input0" "rfile" > /tmp/refout; diff -b -B -E /tmp/refout /tmp/ryout
+
+
+rm -f ryout; rm -f profout
+-----mine 
+
+inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20" "-sE4:6" "-sE2:3" "-sE1:1") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; do echo "Running: ./sched $arg \"$input\" \"$rfile\""; ./sched $arg "$input" "$rfile" >> ryout 2>&1; done; done
+
+-----prof 
+
+inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20" "-sE4:6" "-sE2:3" "-sE1:1") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; do echo "Running: ~frankeh/Public/lab2/sched $arg \"$input\" \"$rfile\""; ~frankeh/Public/lab2/sched $arg "$input" "$rfile" >> profout 2>&1; done; done
+
+-----diff 
+diff -b -B -E profout ryout
+
+
+
+----------------- running!!
+
+rm -f ryout; rm -f profout; inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20" "-sE4:6" "-sE2:3" "-sE1:1") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; do echo "Running: ./sched $arg \"$input\" \"$rfile\""; ./sched $arg "$input" "$rfile" >> ryout 2>&1; done; done; inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20" "-sE4:6" "-sE2:3" "-sE1:1") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; do echo "Running: ~frankeh/Public/lab2/sched $arg \"$input\" \"$rfile\""; ~frankeh/Public/lab2/sched $arg "$input" "$rfile" >> profout 2>&1; done; done; diff -b -B -E profout ryout
+
+
+
+
+
+
+
+
+
+-----if we want to do in temp files and we compare (not really working..)
+
+
+inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; ./sched $arg "$input" "$rfile" >> /temp/ryout; ~frankeh/Public/lab2/sched $arg "$input" "$rfile" >> /tmp/profout; diff -b -B -E /tmp/proout /tmp/ryout 2>&1; done; done
+
+
+inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7") && rfile="rfile" && args=("-sR3" "-sR4" "-sR10" "-sP5:5" "-sP4:5" "-sE20") && for input in "${inputs[@]}"; do for arg in "${args[@]}"; do ./sched $arg "$input" "$rfile" >> /tmp/ryout; do ~/Public/lab2/sched $arg "$input" "$rfile" >> /tmp/profout; do diff -b -B -E /tmp/profout /tmp/ryout 2>&1; done; done
+
+
+
+
+
+
+

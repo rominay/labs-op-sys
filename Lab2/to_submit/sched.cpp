@@ -34,11 +34,13 @@ typedef enum {STATE_CREATED, STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DO
 
 const char* stateToString(process_state_t state) {
     switch (state) {
-        case STATE_CREATED:  return "CREATED";
+        case STATE_CREATED:     return "CREATED";
         case STATE_READY:    return "READY";
         case STATE_RUNNING:  return "RUNNG";
         case STATE_BLOCKED:  return "BLOCK";
+        //case STATE_PREEMPT:  return "STATE_PREEMPT";
         case STATE_DONE:     return "DONE";
+        //default:             return "Unknown State";
     }
 }
 
@@ -407,8 +409,14 @@ public:
             remove_future_events(runningProcess);
 
             // make preemption
-            process_state_t transition = STATE_READY; 
+            process_state_t transition = STATE_READY;
+            //runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;// TODO: change
+            //runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // TODO: change. we did not complete the burst 
             deslayer.put_event(currentTime, runningProcess, transition);
+
+            // make the process ready
+            //transition = STATE_READY;//STATE_RUNNING;
+            //deslayer.put_event(currentTime, readyProcess, transition);
           }
         }
     }
@@ -435,6 +443,10 @@ private:
     }
 };
 
+
+
+
+
 void simulation(){
   Event* event;
   //int CURRENT_TIME;
@@ -447,6 +459,9 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
+    //if (CURRENT_TIME == 1289) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
