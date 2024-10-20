@@ -280,7 +280,7 @@ class PRIOScheduler : public BaseScheduler{
 public:
 	queue<Process*>* activeQ; 
   queue<Process*>* expiredQ;
-  PRIOScheduler(int maxprio){// TO DO: pass maxprio?
+  PRIOScheduler(int maxprio){
     activeQ = new queue<Process*>[maxprio];
     expiredQ = new queue<Process*>[maxprio];
 
@@ -329,9 +329,6 @@ public:
     queue<Process*>* expiredQ;
 
     EPRIOScheduler(int maxprio) : PRIOScheduler(maxprio) {}
-
-    // /~EPRIOScheduler() : ~PRIOScheduler(){}
-
 
     string get_type() override {
         return "PREPRIO";
@@ -537,7 +534,7 @@ void simulation(){
   }
 };
 
-// Function to display help message
+// help message
 void display_help() {
     std::cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
               << "Options:\n"
@@ -553,45 +550,35 @@ int main(int argc, char *argv[]){
   * Pass parameters
   */
   int opt;
-  string schedspec; // Variable to store the scheduling specification
+  string schedspec; // scheduling specification
 
-  // Loop through all arguments
+  // the arguments
   while ((opt = getopt(argc, argv, "vs:")) != -1) {
       switch (opt) {
-          case 'v':  // Enable verbose
+          case 'v':  // verbose
               verbose = true;
               break;
-          case 's':  // Scheduling specification (argument expected)
+          case 's':  // scheduler specification (argument expected)
               schedspec = optarg;
               break;
-          case '?':  // Handle unknown options or missing arguments
+          case '?':  // unknown options or missing arguments
               std::cerr << "Unknown option or missing argument!" << std::endl;
-              display_help();  // Show help message on error
+              display_help(); 
               break;
       }
   }
-
-  char* input_file = argv[optind];
-  string rand_file = argv[optind + 1];
-  
   /*
   * Open file with random numbers
   */
-  //ifstream randfile("lab2_assign/rfile");
+  string rand_file = argv[optind + 1];
   ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
 	}
   /*
-  * Open input file
+  * Read the args
   */
-  //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input1","r");
-  //inputfile = fopen(input_file,"r");
-  ifstream file(input_file);
-  //verbose = true;
-  //schedspec="R2";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
@@ -648,7 +635,11 @@ int main(int argc, char *argv[]){
       scheduler = new EPRIOScheduler(maxprio);
   }
   
- 
+  /*
+  * Open input file
+  */
+  char* input_file = argv[optind];
+  ifstream file(input_file);
   int pid=0;
   string line;
   while (getline(file, line)) {  
@@ -660,6 +651,9 @@ int main(int argc, char *argv[]){
     deslayer.put_event(AT, process, STATE_READY);
     pid++;  
   }
+  /*
+  * Perform the simulation
+  */ 
   simulation();
   /*
   * Output
