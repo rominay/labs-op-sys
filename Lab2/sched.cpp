@@ -64,6 +64,7 @@ public:
   int dynamic_priority;
   int CW; // CPU waiting time
   int CPU_time; 
+  int current_CPU_burst;
   int remaining_CPU_burst;
   int state_ts; // this is the time at which it was put to ready 
   int time_prev_state; // the amount of time in previous state
@@ -83,6 +84,7 @@ public:
     dynamic_priority = static_priority-1;
 		CW = 0;
     CPU_time=0;
+    current_CPU_burst=0;
     remaining_CPU_burst=0;
     state_ts=-1; // we initialize with -1 to indicate that it has not experienced any transition
     time_prev_state=-1; // we initialize with -1 to indicate that it has not experienced any transition
@@ -450,14 +452,15 @@ void simulation(){
   bool CALL_SCHEDULER;
   int activeIOCount = 0;  
   int lastIOTransitionTime = 0;
+  //int CPU_burst=0;
 
 
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    if (CURRENT_TIME == 123) {
-      printf("here");
-    }
+    //if (CURRENT_TIME == 123) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -484,7 +487,8 @@ void simulation(){
 
         if (proc->old_state==STATE_RUNNING) {
           // post-accounting:
-          proc->set_remaining_CPU_burst(timeInPrevState-quantum);
+          //proc->set_remaining_CPU_burst(proc->current_CPU_burst-timeInPrevState);
+          proc->remaining_CPU_burst-=timeInPrevState;
           proc->CPU_time += timeInPrevState;
           current_running_process=nullptr;
           proc->dynamic_priority-=1; // we came from preemption
@@ -512,7 +516,7 @@ void simulation(){
       case STATE_RUNNING:
         {
         current_running_process = proc;
-        int CPU_burst;
+        //int CPU_burst;
         // create event for either preemption or blocking
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
@@ -522,13 +526,15 @@ void simulation(){
 
         }
         else{ // we get a new CPU bust 
-          CPU_burst= myrandom(proc->get_CB());
+          int CPU_burst= myrandom(proc->get_CB());
+          //proc->current_CPU_burst=CPU_burst;
           // the CPU_time of a process is the total time it used CPU 
           int remaining_CPU_time = proc->get_TC() - proc->CPU_time;
           if (remaining_CPU_time < CPU_burst){//if the remaining time is less than the CPU_burst , we run for the remaining time
             time_to_run = remaining_CPU_time;
           }
           else {// we run for the CPU_burst
+            proc->remaining_CPU_burst = CPU_burst;
             time_to_run = CPU_burst;
           }
         }
@@ -546,7 +552,7 @@ void simulation(){
         else{ // it goes to I/O
           //(*proc).CPU_time += time_to_run;
           process_state_t transition;
-          proc->set_remaining_CPU_burst(0);
+          //proc->set_remaining_CPU_burst(0);
           transition = STATE_BLOCKED;
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
@@ -669,10 +675,10 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input2","r");
+  inputfile = fopen("lab2_assign/input0","r");
   //inputfile = fopen(input_file,"r");
   verbose = true;
-  schedspec="E4";
+  schedspec="R2";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
