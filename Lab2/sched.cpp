@@ -371,71 +371,56 @@ public:
     }
 
     void add_process(Process* p) override {
-        //if (current_running_process != nullptr && p->dynamic_priority > current_running_process->dynamic_priority &&
-        //    !has_pending_event_for_process(current_running_process, CURRENT_TIME)) {
-        handle_preemption(p, current_running_process, CURRENT_TIME);
-        //} else {
+        handle_preemption(p);
         if (p->dynamic_priority == -1) {
             p->dynamic_priority = p->static_priority - 1; // Reset dynamic priority when coming from I/O
             expiredQ[p->dynamic_priority].push(p);
             return;
         }
         activeQ[p->dynamic_priority].push(p);
-        //}
     }
 
     string get_type() override {
         return "PREPRIO";
     }
 
-    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
-        // Preemption condition: if READY process has a higher dynamic priority than running process
-        if (runningProcess != nullptr) { //readyProcess->old_state == "RUNNG" && 
-          if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
-              !has_pending_event_for_process(runningProcess, currentTime)) {
-              
-            // Preemption happens
-            // Remove the future event for the running process
-            remove_future_event_for_process(runningProcess);
+    void handle_preemption(Process* readyProcess) {
+        if (current_running_process != nullptr) { 
+          if (readyProcess->dynamic_priority > current_running_process->dynamic_priority &&
+              !has_pending_event(current_running_process)) {
+ 
+            remove_future_event_for_process(current_running_process);
 
-            // Add a preemption event for the READY process
+            // we make preemption
             process_state_t transition = STATE_READY;
-            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;
-            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // we did not complete the burst 
-            deslayer.put_event(currentTime, runningProcess, transition);
-            
-            // Update the state of the running process (it will be preempted)
-            //runningProcess->old_state = "READY";
+            current_running_process->remaining_CPU_burst=CURRENT_TIME-current_running_process->state_ts;
+            current_running_process->CPU_time-=CURRENT_TIME-current_running_process->state_ts; // we did not complete the burst 
+            deslayer.put_event(CURRENT_TIME, current_running_process, transition);
 
-            // Insert the ready process back into the event queue as it will now be RUNNG
+            // put ready process to deslayer to transition to running
             transition = STATE_RUNNING;
-            deslayer.put_event(currentTime, readyProcess, transition);
+            deslayer.put_event(CURRENT_TIME, readyProcess, transition);
 
-            // Update the old state of the ready process to "RUNNG"
-            //readyProcess->old_state = "RUNNG";
-            //return readyProcess;
           }
         }
-        //return runningProcess;
     }
 
 private:
-    // Helper function to check if there is a pending event for a specific process at the current time
-    bool has_pending_event_for_process(Process* proc, int currentTime) {
+   
+    bool has_pending_event(Process* proc) {
         for (auto ev : deslayer.eventQ) {
-            if (ev->get_process() == proc && ev->get_timestamp() == currentTime) {
+            if (ev->get_process() == proc && ev->get_timestamp() == CURRENT_TIME) {
                 return true;
             }
         }
         return false;
     }
 
-    // Helper function to remove future event for a process (if exists)
     void remove_future_event_for_process(Process* proc) {
         auto it = deslayer.eventQ.begin();
         while (it != deslayer.eventQ.end()) {
             if ((*it)->get_process() == proc) {
-                it = deslayer.eventQ.erase(it); // Remove the event from the queue
+                it = deslayer.eventQ.erase(it); 
             } else {
                 ++it;
             }
@@ -458,9 +443,9 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 127) {
-    //  printf("here");
-    //}
+    if (CURRENT_TIME == 127) {
+      printf("here");
+    }
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -647,8 +632,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  //ifstream randfile("lab2_assign/rfile");
-  ifstream randfile(rand_file);
+  ifstream randfile("lab2_assign/rfile");
+  //ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -657,10 +642,10 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input2","r");
-  inputfile = fopen(input_file,"r");
-  //verbose = true;
-  //schedspec="E4";
+  inputfile = fopen("lab2_assign/input2","r");
+  //inputfile = fopen(input_file,"r");
+  verbose = true;
+  schedspec="E4";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
