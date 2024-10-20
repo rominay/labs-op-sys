@@ -30,23 +30,22 @@ int totalIOTime = 0;
 int CURRENT_TIME;
 
 
-typedef enum {STATE_CREATED, STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DONE} process_state_t; //STATE_PREEMPT
+typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED} process_state_t; 
 
 const char* stateToString(process_state_t state) {
     switch (state) {
-        case STATE_CREATED:  return "CREATED";
         case STATE_READY:    return "READY";
         case STATE_RUNNING:  return "RUNNG";
         case STATE_BLOCKED:  return "BLOCK";
-        case STATE_DONE:     return "DONE";
+        default:             return "UNKNOWN";  //invalid state
     }
-}
+};
 
 int myrandom(int burst) {
-	if (ofs == randvals.size()){ofs = 0;}
+	if (ofs == static_cast<int>(randvals.size())){ofs = 0;}
   else{ofs++;}
 	return 1 + (randvals[ofs] % burst);
-}
+};
 
 class Process{
 public:
@@ -67,7 +66,7 @@ public:
   int state_ts; // this is the time at which it was put to ready 
   int time_prev_state; // the amount of time in previous state
   int pid; // identifier
-  process_state_t old_state=STATE_CREATED;
+  process_state_t old_state;
   // constructor
   Process(int AT, int TC, int CB, int IO, int pid){
     this->AT = AT;
@@ -107,12 +106,6 @@ public:
   void set_time_prev_state(int new_time_prev_state) {time_prev_state=new_time_prev_state;}
 };
 
-
-struct CompareRemainingTime {
-    bool operator()(Process* p_top, Process* p_to_add ) {
-        return p_top->get_remaining_time() > p_to_add->get_remaining_time();  //shorter remaining time has higher priority
-    }
-};
 
 list <Process*> processes;
 
@@ -176,15 +169,13 @@ public:
     if (eventQ.empty()){return -1;}
     else{return eventQ.front()->get_timestamp();}
   }
-
-  
 };
 
 DesLayer deslayer;
 Process* current_running_process;
 
 
-// Base class for scheduling
+// Base class for scheduler
 class BaseScheduler {
 public:
     virtual ~BaseScheduler() {} // virtual destructor 
@@ -193,10 +184,10 @@ public:
     virtual string get_type() = 0;
     void virtual handle_preemption(Process* proc, Process* CRP, int time) = 0;
 };
+
 BaseScheduler *scheduler;
 
-
-// FCFS Scheduler 
+// First Come First Serve Scheduler 
 class FCFSScheduler : public BaseScheduler {
 private:
     queue<Process*> runQueue; 
@@ -217,6 +208,7 @@ public:
         runQueue.push(p); 
     }
 };
+
 
 class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
@@ -248,7 +240,8 @@ public:
 		}
 		int shortestremainTime = runQueue[0]->get_remaining_time();
         int shortestIndex = 0;
-        for(int i=1;i<runQueue.size();i++){
+        int runQSize = static_cast<int>(runQueue.size());
+        for(int i=1;i<runQSize;i++){
         if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
             shortestremainTime=runQueue[i]->get_remaining_time();
             shortestIndex = i;
@@ -282,8 +275,7 @@ public:
 	}
 };
 
-
-
+// util function
 bool isEmpty(queue<Process*> a_queue[]){
   for (int i=0; i<maxprio; i++){
     if (a_queue[i].size() != 0) {
@@ -306,7 +298,6 @@ public:
     delete activeQ;
   }
   
-
   void handle_preemption(Process* proc, Process* CRP, int time){};
 	Process* get_next_process() override {
       for (size_t i=0; i<2;i++){
@@ -377,7 +368,6 @@ public:
     }
 
     void add_process(Process* p) override {
-        //handle_preemption(p, current_running_process, CURRENT_TIME);
         if (p->dynamic_priority == -1) {
             p->dynamic_priority = p->static_priority - 1; 
             expiredQ[p->dynamic_priority].push(p);
@@ -506,8 +496,6 @@ void simulation(){
       case STATE_RUNNING:
         {
         current_running_process = proc;
-        //int CPU_burst;
-        // create event for either preemption or blocking
         proc->CW+=proc->time_prev_state; // we know we come from READY
         int time_to_run;
         int time_remaining_to_run = proc->get_remaining_CPU_burst();
@@ -517,14 +505,11 @@ void simulation(){
         }
         else{ // we get a new CPU bust 
           int CPU_burst= myrandom(proc->get_CB());
-          //proc->current_CPU_burst=CPU_burst;
-          // the CPU_time of a process is the total time it used CPU 
           int remaining_CPU_time = proc->get_TC() - proc->CPU_time;
           if (remaining_CPU_time < CPU_burst){//if the remaining time is less than the CPU_burst , we run for the remaining time
             time_to_run = remaining_CPU_time;
           }
           else {// we run for the CPU_burst
-            //proc->remaining_CPU_burst = CPU_burst;
             time_to_run = CPU_burst;
           }
           proc->remaining_CPU_burst = time_to_run;
@@ -535,15 +520,11 @@ void simulation(){
 					cout <<" cb="<< time_to_run <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority <<endl;
 				}
         if (time_to_run > quantum){ // we will not finish 
-          //(*proc).CPU_time += quantum;
-          //proc->set_remaining_CPU_burst(time_to_run-quantum);
           process_state_t transition = STATE_READY;
           deslayer.put_event(CURRENT_TIME+quantum, proc, transition);
         }
         else{ // it goes to I/O
-          //(*proc).CPU_time += time_to_run;
           process_state_t transition;
-          //proc->set_remaining_CPU_burst(0);
           transition = STATE_BLOCKED;
           deslayer.put_event(CURRENT_TIME+time_to_run, proc, transition);
         }
@@ -558,17 +539,13 @@ void simulation(){
         proc->remaining_CPU_burst=0;
         // check if we are done
         if (proc->CPU_time >= proc->get_TC()){ 
-          //transition = STATE_DONE; 
           proc->set_FT(CURRENT_TIME);
-          //deslayer.put_event(CURRENT_TIME, proc, transition);
           if (verbose) {
             cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
           }
           last_event_FT = CURRENT_TIME;
-          proc->old_state=STATE_DONE;
           current_running_process=nullptr;
           CALL_SCHEDULER=true;
-
           break;
         }
 
@@ -582,7 +559,6 @@ void simulation(){
 					cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< stateToString(proc->old_state) <<" -> "<<"BLOCK";
 					cout <<" ib="<< IO_burst <<" rem="<<proc->TC-proc->CPU_time <<endl;
 				}
-        //(*proc).IT += IO_burst;
         process_state_t transition = STATE_READY;
         deslayer.put_event(CURRENT_TIME+IO_burst, proc, transition);
         CALL_SCHEDULER = true;
@@ -590,19 +566,9 @@ void simulation(){
         proc->old_state=STATE_BLOCKED;
         break;
         }
-
-      //case STATE_DONE:
-      //  if (verbose) {
-		 //			cout<< CURRENT_TIME<<" "<<proc->pid<<" "<< timeInPrevState <<": "<< "DONE" << endl;
-			//	}
-      //  last_event_FT = CURRENT_TIME;
-      //  proc->old_state=STATE_DONE;
-      //  current_running_process=nullptr;
-       // CALL_SCHEDULER=true;
     }
 
     if (CALL_SCHEDULER) {
-      
       if (deslayer.get_next_event_time() == CURRENT_TIME){
         continue; 
       }
@@ -631,8 +597,6 @@ void display_help() {
     exit(0);
 }
 
-
-
 int main(int argc, char *argv[]){
   /*
   * Pass parameters
@@ -658,9 +622,6 @@ int main(int argc, char *argv[]){
 
   char* input_file = argv[optind];
   string rand_file = argv[optind + 1];
-
-
-
   
   /*
   * Open file with random numbers

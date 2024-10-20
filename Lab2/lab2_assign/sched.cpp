@@ -30,22 +30,20 @@ int totalIOTime = 0;
 int CURRENT_TIME;
 
 
-typedef enum {STATE_CREATED, STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DONE} process_state_t; //STATE_PREEMPT
+typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DONE} process_state_t; //STATE_PREEMPT
 
 const char* stateToString(process_state_t state) {
     switch (state) {
-        case STATE_CREATED:     return "CREATED";
+        //case STATE_CREATED:  return "CREATED";
         case STATE_READY:    return "READY";
         case STATE_RUNNING:  return "RUNNG";
         case STATE_BLOCKED:  return "BLOCK";
-        //case STATE_PREEMPT:  return "STATE_PREEMPT";
         case STATE_DONE:     return "DONE";
-        //default:             return "Unknown State";
     }
 }
 
 int myrandom(int burst) {
-	if (ofs == randvals.size()){ofs = 0;}
+	if (ofs == static_cast<int>(randvals.size())){ofs = 0;}
   else{ofs++;}
 	return 1 + (randvals[ofs] % burst);
 }
@@ -69,7 +67,7 @@ public:
   int state_ts; // this is the time at which it was put to ready 
   int time_prev_state; // the amount of time in previous state
   int pid; // identifier
-  process_state_t old_state=STATE_CREATED;
+  process_state_t old_state;//=STATE_CREATED;
   // constructor
   Process(int AT, int TC, int CB, int IO, int pid){
     this->AT = AT;
@@ -311,24 +309,25 @@ public:
 
   void handle_preemption(Process* proc, Process* CRP, int time){};
 	Process* get_next_process() override {
-    if (isEmpty(activeQ) && isEmpty(expiredQ)){
+      for (size_t i=0; i<2;i++){
+        Process* nextProcess;
+        for (int i = maxprio - 1; i >= 0; --i) { // Prioritize higher dynamic priorities
+          if (!activeQ[i].empty()) {
+              nextProcess = activeQ[i].front();
+              activeQ[i].pop();
+              return nextProcess;
+          }
+        }
+
+        if (isEmpty(activeQ)) {
+            // Swap active and expired queues if active is empty
+            queue<Process*>* tempQ = activeQ;
+            activeQ = expiredQ;
+            expiredQ = tempQ;
+        }
+      }
       return nullptr;
     }
-    if (isEmpty(activeQ)){
-      // we swap the pointers
-      queue<Process*>* tempQ = activeQ;
-      activeQ = expiredQ;
-      expiredQ = tempQ;
-    }
-    Process* nextProcess;
-    for (int i=maxprio-1; i>=0; --i){ // we go over higher priority to less priority
-      if (!activeQ[i].empty()) {
-        nextProcess = activeQ[i].front();
-        activeQ[i].pop();
-        return nextProcess;
-      }
-    }
-  }
 
   void add_process(Process *p) override {
     if (p->dynamic_priority == -1){
@@ -408,14 +407,8 @@ public:
             remove_future_events(runningProcess);
 
             // make preemption
-            process_state_t transition = STATE_READY;
-            //runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;// TODO: change
-            //runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // TODO: change. we did not complete the burst 
+            process_state_t transition = STATE_READY; 
             deslayer.put_event(currentTime, runningProcess, transition);
-
-            // make the process ready
-            //transition = STATE_READY;//STATE_RUNNING;
-            //deslayer.put_event(currentTime, readyProcess, transition);
           }
         }
     }
@@ -442,10 +435,6 @@ private:
     }
 };
 
-
-
-
-
 void simulation(){
   Event* event;
   //int CURRENT_TIME;
@@ -458,9 +447,6 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 1289) {
-    //  printf("here");
-    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
