@@ -371,13 +371,17 @@ public:
     }
 
     void add_process(Process* p) override {
-        //handle_preemption(p, current_running_process, CURRENT_TIME);
+        //if (current_running_process != nullptr && p->dynamic_priority > current_running_process->dynamic_priority &&
+        //    !has_pending_event_for_process(current_running_process, CURRENT_TIME)) {
+        handle_preemption(p, current_running_process, CURRENT_TIME);
+        //} else {
         if (p->dynamic_priority == -1) {
             p->dynamic_priority = p->static_priority - 1; // Reset dynamic priority when coming from I/O
             expiredQ[p->dynamic_priority].push(p);
             return;
         }
         activeQ[p->dynamic_priority].push(p);
+        //}
     }
 
     string get_type() override {
@@ -386,27 +390,33 @@ public:
 
     void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
         // Preemption condition: if READY process has a higher dynamic priority than running process
-        if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
-            !has_pending_event_for_process(runningProcess, currentTime)) {
-            
+        if (runningProcess != nullptr) { //readyProcess->old_state == "RUNNG" && 
+          if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
+              !has_pending_event_for_process(runningProcess, currentTime)) {
+              
             // Preemption happens
             // Remove the future event for the running process
             remove_future_event_for_process(runningProcess);
 
             // Add a preemption event for the READY process
-            process_state_t transition = STATE_PREEMPT;
+            process_state_t transition = STATE_READY;
+            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;
+            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // we did not complete the burst 
             deslayer.put_event(currentTime, runningProcess, transition);
             
             // Update the state of the running process (it will be preempted)
-            runningProcess->old_state = "PREEMPTED";
+            //runningProcess->old_state = "READY";
 
             // Insert the ready process back into the event queue as it will now be RUNNG
             transition = STATE_RUNNING;
             deslayer.put_event(currentTime, readyProcess, transition);
 
             // Update the old state of the ready process to "RUNNG"
-            readyProcess->old_state = "RUNNG";
+            //readyProcess->old_state = "RUNNG";
+            //return readyProcess;
+          }
         }
+        //return runningProcess;
     }
 
 private:
@@ -448,7 +458,7 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    //if (CURRENT_TIME == 44) {
+    //if (CURRENT_TIME == 127) {
     //  printf("here");
     //}
     process_state_t transition = event->get_transition();
@@ -462,11 +472,17 @@ void simulation(){
     delete event; event = nullptr;
 
     switch(transition){
-      case STATE_READY: // TRANS_TO_READY
-        //if (proc->old_state == "RUNNG" && current_running_process != nullptr) {
-        // Check if the new READY process should preempt the running process
-        //  scheduler->handle_preemption(proc, current_running_process, CURRENT_TIME);
-        //}
+      case STATE_READY: 
+        if (verbose) {
+          if (proc->old_state=="RUNNG"){ 
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
+            cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
+          }
+          else {
+            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
+          }
+        }
+
         if (proc->old_state=="BLOCK"){ // it not the first time put on ready
           activeIOCount--; // it stopped being doing IO
           if (activeIOCount == 0) {  // transition 1 -> 0 
@@ -480,22 +496,13 @@ void simulation(){
           proc->dynamic_priority-=1; // we came from preemption
         }
         CALL_SCHEDULER = true;
-        scheduler->add_process(proc);
-        if (verbose) {
-          if (proc->old_state=="RUNNG"){ 
-            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << "RUNNG"<<" -> "<< "READY";
-            cout <<" cb="<< proc->remaining_CPU_burst <<" rem="<<proc->TC-proc->CPU_time<< " prio="<< proc->dynamic_priority << endl;
-          }
-          else {
-            cout << CURRENT_TIME<<" "<< proc->pid <<" "<< timeInPrevState<< ": " << proc->old_state<<" -> "<< "READY" << endl;
-          }
-        }
-
         proc->old_state="READY";
+        scheduler->add_process(proc);
         break;
       
       case STATE_RUNNING:
         {
+        current_running_process = proc;
         int CPU_burst;
         // create event for either preemption or blocking
         proc->CW+=proc->time_prev_state; // we know we come from READY
@@ -650,9 +657,10 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  //inputfile = fopen("lab2_assign/input0","r");
+  //inputfile = fopen("lab2_assign/input2","r");
   inputfile = fopen(input_file,"r");
-  //schedspec="P2";
+  //verbose = true;
+  //schedspec="E4";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
