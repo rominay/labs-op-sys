@@ -30,16 +30,17 @@ int totalIOTime = 0;
 int CURRENT_TIME;
 
 
-typedef enum {STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_PREEMPT, STATE_DONE} process_state_t;
+typedef enum {STATE_CREATED, STATE_READY, STATE_RUNNING, STATE_BLOCKED, STATE_DONE} process_state_t; //STATE_PREEMPT
 
 const char* stateToString(process_state_t state) {
     switch (state) {
+        case STATE_CREATED:     return "CREATED";
         case STATE_READY:    return "READY";
         case STATE_RUNNING:  return "RUNNG";
         case STATE_BLOCKED:  return "BLOCK";
-        case STATE_PREEMPT:  return "STATE_PREEMPT";
+        //case STATE_PREEMPT:  return "STATE_PREEMPT";
         case STATE_DONE:     return "DONE";
-        default:             return "Unknown State";
+        //default:             return "Unknown State";
     }
 }
 
@@ -190,7 +191,7 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
-    //virtual void handle_preemption() = 0;
+    void virtual handle_preemption(Process* proc, Process* CRP, int time) = 0;
 };
 BaseScheduler *scheduler;
 
@@ -201,6 +202,7 @@ private:
     queue<Process*> runQueue; 
 
 public:
+    void handle_preemption(Process* proc, Process* CRP, int time){};
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
@@ -220,6 +222,7 @@ class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
 
 public:
+  void handle_preemption(Process* proc, Process* CRP, int time){};
   string get_type() override {return "LCFS";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -237,6 +240,7 @@ public:
 class SRTFScheduler : public BaseScheduler{
 	vector <Process *> runQueue;
 public:
+    void handle_preemption(Process* proc, Process* CRP, int time){};
     string get_type() override {return "SRTF";}
     Process *get_next_process() override {
 	    if (runQueue.empty()){
@@ -263,6 +267,7 @@ public:
 class RoundRobinScheduler : public BaseScheduler{
 	queue<Process *> runQueue;
 public:
+  void handle_preemption(Process* proc, Process* CRP, int time){};
   string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -302,7 +307,7 @@ public:
   }
   
 
-
+  void handle_preemption(Process* proc, Process* CRP, int time){};
 	Process* get_next_process() override {
     if (isEmpty(activeQ) && isEmpty(expiredQ)){
       return nullptr;
@@ -350,28 +355,28 @@ public:
     }
 
     Process* get_next_process() override {
-        if (isEmpty(activeQ) && isEmpty(expiredQ)) {
-            return nullptr;
+      for (size_t i=0; i<2;i++){
+        Process* nextProcess;
+        for (int i = maxprio - 1; i >= 0; --i) { // Prioritize higher dynamic priorities
+          if (!activeQ[i].empty()) {
+              nextProcess = activeQ[i].front();
+              activeQ[i].pop();
+              return nextProcess;
+          }
         }
+
         if (isEmpty(activeQ)) {
             // Swap active and expired queues if active is empty
             queue<Process*>* tempQ = activeQ;
             activeQ = expiredQ;
             expiredQ = tempQ;
         }
-        Process* nextProcess;
-        for (int i = maxprio - 1; i >= 0; --i) { // Prioritize higher dynamic priorities
-            if (!activeQ[i].empty()) {
-                nextProcess = activeQ[i].front();
-                activeQ[i].pop();
-                return nextProcess;
-            }
-        }
-        return nullptr;
+      }
+      return nullptr;
     }
 
     void add_process(Process* p) override {
-        handle_preemption(p, current_running_process, CURRENT_TIME);
+        //handle_preemption(p, current_running_process, CURRENT_TIME);
         if (p->dynamic_priority == -1) {
             p->dynamic_priority = p->static_priority - 1; 
             expiredQ[p->dynamic_priority].push(p);
@@ -394,13 +399,13 @@ public:
 
             // make preemption
             process_state_t transition = STATE_READY;
-            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;
-            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // we did not complete the burst 
+            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;// TODO: change
+            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // TODO: change. we did not complete the burst 
             deslayer.put_event(currentTime, runningProcess, transition);
 
             // make the process ready
-            transition = STATE_RUNNING;
-            deslayer.put_event(currentTime, readyProcess, transition);
+            transition = STATE_READY;//STATE_RUNNING;
+            //deslayer.put_event(currentTime, readyProcess, transition);
           }
         }
     }
@@ -482,6 +487,9 @@ void simulation(){
         CALL_SCHEDULER = true;
         proc->old_state="READY";
         scheduler->add_process(proc);
+        //if (scheduler->get_type() == "PREPRIO"){
+        scheduler-> handle_preemption(proc, current_running_process, CURRENT_TIME);
+        //};
         break;
       
       case STATE_RUNNING:
