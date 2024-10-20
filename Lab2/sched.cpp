@@ -371,9 +371,9 @@ public:
     }
 
     void add_process(Process* p) override {
-        handle_preemption(p);
+        handle_preemption(p, current_running_process, CURRENT_TIME);
         if (p->dynamic_priority == -1) {
-            p->dynamic_priority = p->static_priority - 1; // Reset dynamic priority when coming from I/O
+            p->dynamic_priority = p->static_priority - 1; 
             expiredQ[p->dynamic_priority].push(p);
             return;
         }
@@ -384,39 +384,38 @@ public:
         return "PREPRIO";
     }
 
-    void handle_preemption(Process* readyProcess) {
-        if (current_running_process != nullptr) { 
-          if (readyProcess->dynamic_priority > current_running_process->dynamic_priority &&
-              !has_pending_event(current_running_process)) {
- 
-            remove_future_event_for_process(current_running_process);
+    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
+        // if readyProcess process has a higher dynamic prio than current_running_process
+        if (runningProcess != nullptr) { 
+          if (readyProcess->dynamic_priority > runningProcess->dynamic_priority &&
+              !has_pending_event(runningProcess, currentTime)) {
+              
+            remove_future_events(runningProcess);
 
-            // we make preemption
+            // make preemption
             process_state_t transition = STATE_READY;
-            current_running_process->remaining_CPU_burst=CURRENT_TIME-current_running_process->state_ts;
-            current_running_process->CPU_time-=CURRENT_TIME-current_running_process->state_ts; // we did not complete the burst 
-            deslayer.put_event(CURRENT_TIME, current_running_process, transition);
+            runningProcess->remaining_CPU_burst=CURRENT_TIME-runningProcess->state_ts;
+            runningProcess->CPU_time-=CURRENT_TIME-runningProcess->state_ts; // we did not complete the burst 
+            deslayer.put_event(currentTime, runningProcess, transition);
 
-            // put ready process to deslayer to transition to running
+            // make the process ready
             transition = STATE_RUNNING;
-            deslayer.put_event(CURRENT_TIME, readyProcess, transition);
-
+            deslayer.put_event(currentTime, readyProcess, transition);
           }
         }
     }
 
 private:
-   
-    bool has_pending_event(Process* proc) {
+    bool has_pending_event(Process* proc, int currentTime) {
         for (auto ev : deslayer.eventQ) {
-            if (ev->get_process() == proc && ev->get_timestamp() == CURRENT_TIME) {
+            if (ev->get_process() == proc && ev->get_timestamp() == currentTime) {
                 return true;
             }
         }
         return false;
     }
 
-    void remove_future_event_for_process(Process* proc) {
+    void remove_future_events(Process* proc) {
         auto it = deslayer.eventQ.begin();
         while (it != deslayer.eventQ.end()) {
             if ((*it)->get_process() == proc) {
@@ -443,9 +442,9 @@ void simulation(){
   while ((event= deslayer.get_event())){ // we call the deslayer to give us an event 
     Process* proc = event->get_process();
     CURRENT_TIME = event->get_timestamp();
-    if (CURRENT_TIME == 127) {
-      printf("here");
-    }
+    //if (CURRENT_TIME == 127) {
+    //  printf("here");
+    //}
     process_state_t transition = event->get_transition();
     int timeInPrevState;
     if (proc->state_ts==-1) {timeInPrevState=0;}
@@ -632,8 +631,8 @@ int main(int argc, char *argv[]){
   /*
   * Open file with random numbers
   */
-  ifstream randfile("lab2_assign/rfile");
-  //ifstream randfile(rand_file);
+  //ifstream randfile("lab2_assign/rfile");
+  ifstream randfile(rand_file);
 	string rs;
 	while(randfile>>rs){
 		randvals.push_back(atoi(rs.c_str()));
@@ -642,10 +641,10 @@ int main(int argc, char *argv[]){
   * Open input file
   */
   //inputfile = fopen("input0","r");
-  inputfile = fopen("lab2_assign/input2","r");
-  //inputfile = fopen(input_file,"r");
-  verbose = true;
-  schedspec="E4";
+  //inputfile = fopen("lab2_assign/input2","r");
+  inputfile = fopen(input_file,"r");
+  //verbose = true;
+  //schedspec="E4";
   if (schedspec == "F") {
     scheduler = new FCFSScheduler();
     quantum = 10000;
