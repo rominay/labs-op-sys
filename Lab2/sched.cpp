@@ -173,7 +173,8 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
-    void virtual handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) = 0;
+    void virtual handle_preemption(Process* readyProcess, 
+                                   Process* runningProcess, int currentTime){};
 };
 
 BaseScheduler *scheduler;
@@ -184,7 +185,7 @@ private:
     queue<Process*> runQueue; 
 
 public:
-    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
+    //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
@@ -205,7 +206,7 @@ class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
 
 public:
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
+  //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "LCFS";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -221,37 +222,39 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector <Process *> runQueue;
+  vector <Process *> runQueue;
 public:
-    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
-    string get_type() override {return "SRTF";}
-    Process *get_next_process() override {
-	    if (runQueue.empty()){
-			return NULL;
-		}
-		int shortestremainTime = runQueue[0]->get_remaining_time();
-        int shortestIndex = 0;
-        int runQSize = static_cast<int>(runQueue.size());
-        for(int i=1;i<runQSize;i++){
-        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
-            shortestremainTime=runQueue[i]->get_remaining_time();
-            shortestIndex = i;
+    string get_type() override { 
+        return "SRTF"; 
+    }
+
+    Process* get_next_process() override {
+        if (runQueue.empty()) {
+            return NULL;
         }
+
+        // Find the process with the shortest remaining time
+        auto shortestProcess = runQueue.begin();
+        for (auto it = runQueue.begin(); it != runQueue.end(); ++it) {
+            if ((*it)->get_remaining_time() < (*shortestProcess)->get_remaining_time()) {
+                shortestProcess = it;
+            }
         }
-        Process* nextProcess = runQueue[shortestIndex];
-        runQueue.erase(runQueue.begin()+shortestIndex);;
+
+        // Retrieve the process and remove it from the list
+        Process* nextProcess = *shortestProcess;
+        runQueue.erase(shortestProcess);
         return nextProcess;
-        }
+    }
 
-    void add_process(Process *p) override {
+    void add_process(Process* p) override {
         runQueue.push_back(p);
-	}
+    }
 };
-
 class RoundRobinScheduler : public BaseScheduler{
 	queue<Process *> runQueue;
 public:
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
+  //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -287,9 +290,11 @@ public:
   }
   ~PRIOScheduler() {
     delete activeQ;
+    delete expiredQ;
   }
   
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
+  //void handle_preemption(Process* readyProcess, 
+  //                       Process* runningProcess, int currentTime){};
 	Process* get_next_process() override {
       for (size_t i=0; i<2;i++){
         Process* nextProcess;

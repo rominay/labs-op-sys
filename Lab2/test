@@ -1,0 +1,7 @@
+
+
+rm -f ryout profout; inputs=("input0" "input1" "input2" "input3" "input4" "input5" "input6" "input7"); rfile="rfile"; args=("-sR3" "-sR4" "-sR8" "-sR10" "-sP5:5" "-sP4:5" "-sE20" "-sE4:6" "-sE2:3" "-sE1:1" "-sE2:5"); for input in "${inputs[@]}"; do for arg in "${args[@]}"; do echo "Running: ./sched $arg \"$input\" \"$rfile\""; ./sched $arg "$input" "$rfile" >> ryout; echo "Running: ~frankeh/Public/lab2/sched $arg \"$input\" \"$rfile\""; ~frankeh/Public/lab2/sched $arg "$input" "$rfile" >> profout 2>&1; done; done; diff -b -B -E profout ryout
+
+
+
+
