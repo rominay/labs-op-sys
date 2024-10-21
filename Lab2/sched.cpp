@@ -222,7 +222,7 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-  vector <Process *> runQueue;
+  list <Process *> runQueue;
 public:
     string get_type() override { 
         return "SRTF"; 
