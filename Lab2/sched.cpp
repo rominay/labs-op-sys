@@ -584,61 +584,81 @@ int main(int argc, char *argv[]){
   /*
   * Read the args
   */
-  if (schedspec == "F") {
-    scheduler = new FCFSScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-  if (schedspec == "L") {
-    scheduler = new LCFSScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-  if (schedspec == "S") {
-    scheduler = new SRTFScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-
-  // Case 2: R<num> (e.g., R100)
-  regex r_regex("^R([0-9]+)$");
-  smatch r_match;
-  if (regex_match(schedspec, r_match, r_regex)) {
-      scheduler = new RoundRobinScheduler();
+  while(1){
+    if (schedspec == "F") {
+      scheduler = new FCFSScheduler();
+      quantum = 10000;
       maxprio = 4; 
-      string str_quantum = r_match[1];
-      quantum = stoi(str_quantum);
-  }
+      break;
+    }
+    if (schedspec == "L") {
+      scheduler = new LCFSScheduler();
+      quantum = 10000;
+      maxprio = 4; 
+      break;
+    }
+    if (schedspec == "S") {
+      scheduler = new SRTFScheduler();
+      quantum = 10000;
+      maxprio = 4; 
+      break;
+    }
 
-  // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
-  regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
-  smatch p_match;
-  if (regex_match(schedspec, p_match, p_regex)) {
-      string str_quantum = p_match[1];
-      quantum = stoi(str_quantum); // TO DO: check if quantum is required
-      if (p_match[2].length() > 0) {
-        string str_maxprios = p_match[2];
-        maxprio = stoi(str_maxprios);
-      } else{
-        maxprio=4;
-      }
-      scheduler = new PRIOScheduler(maxprio);
-  }
+    // Case 2: R<num> (e.g., R100)
+    regex r_regex("^R([0-9]+)$");
+    smatch r_match;
+    if (regex_match(schedspec, r_match, r_regex)) {
+        maxprio = 4; 
+        string str_quantum = r_match[1];
+        quantum = stoi(str_quantum);
+        if (quantum<0) { // check if valid quantum
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;} 
+        scheduler = new RoundRobinScheduler();
+        break;
+    }
 
-  // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
-  regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
-  smatch e_match;
-  if (regex_match(schedspec, e_match, e_regex)) {
-      string str_quantum = e_match[1];
-      quantum = stoi(str_quantum); 
-      if (e_match[2].length() > 0) {
-        string str_maxprios = e_match[2];
-        maxprio = stoi(str_maxprios);
-      } else{
-        maxprio=4;
-      }
-      scheduler = new EPRIOScheduler(maxprio);
-  }
+    // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
+    regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
+    smatch p_match;
+    if (regex_match(schedspec, p_match, p_regex)) {
+        string str_quantum = p_match[1];
+        quantum = stoi(str_quantum); // TO DO: check if quantum is required
+        if (p_match[2].length() > 0) {
+          string str_maxprios = p_match[2];
+          maxprio = stoi(str_maxprios);
+        } else{
+          maxprio=4;
+        }
+        if (quantum<0 || maxprio<0) { // check if valid quantum
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;} 
+        scheduler = new PRIOScheduler(maxprio);
+        break;
+    }
+
+    // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
+    regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
+    smatch e_match;
+    if (regex_match(schedspec, e_match, e_regex)) {
+        string str_quantum = e_match[1];
+        quantum = stoi(str_quantum); 
+        if (e_match[2].length() > 0) {
+          string str_maxprios = e_match[2];
+          maxprio = stoi(str_maxprios);
+        } else{
+          maxprio=4;
+        }
+        if (quantum<0 || maxprio<0) { // check if valid quantum
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;} 
+        scheduler = new EPRIOScheduler(maxprio);
+        break;
+    }
+
+    cout << "Invalid scheduling specification format: " << schedspec << endl;
+    return 0;
+  } 
   
   /*
   * Open input file
