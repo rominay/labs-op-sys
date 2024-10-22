@@ -5,7 +5,6 @@
 #include <list>
 #include <queue>
 #include <unistd.h> // For getopt
-#include <cstdlib>  // For exit()
 #include <regex>
 #include <vector>
 
@@ -185,7 +184,6 @@ private:
     queue<Process*> runQueue; 
 
 public:
-    //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
@@ -206,7 +204,6 @@ class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
 
 public:
-  //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "LCFS";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -233,16 +230,15 @@ public:
             return NULL;
         }
 
-        // Find the process with the shortest remaining time
+        // get process with shortest remaining time
         auto shortestProcess = runQueue.begin();
         for (auto it = runQueue.begin(); it != runQueue.end(); ++it) {
             if ((*it)->get_remaining_time() < (*shortestProcess)->get_remaining_time()) {
                 shortestProcess = it;
             }
         }
-
-        // Retrieve the process and remove it from the list
         Process* nextProcess = *shortestProcess;
+        // remove it from the list
         runQueue.erase(shortestProcess);
         return nextProcess;
     }
@@ -254,7 +250,6 @@ public:
 class RoundRobinScheduler : public BaseScheduler{
 	queue<Process *> runQueue;
 public:
-  //void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -293,8 +288,6 @@ public:
     delete expiredQ;
   }
   
-  //void handle_preemption(Process* readyProcess, 
-  //                       Process* runningProcess, int currentTime){};
 	Process* get_next_process() override {
       for (size_t i=0; i<2;i++){
         Process* nextProcess;
@@ -340,7 +333,6 @@ public:
     }
 
     void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
-        // if readyProcess process has a higher dynamic prio than current_running_process
         if (runningProcess != nullptr) { 
           bool condition_1 = readyProcess->dynamic_priority > runningProcess->dynamic_priority;
           bool condition_2 = !has_pending_event(runningProcess, currentTime);
@@ -541,7 +533,7 @@ void simulation(){
 
 // help message
 void display_help() {
-    std::cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
+    cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
               << "Options:\n"
               << "  -v        Enable verbose output\n"
               << "  -s <schedspec> Specify the scheduling specification (requires argument)\n"
@@ -563,11 +555,11 @@ int main(int argc, char *argv[]){
           case 'v':  // verbose
               verbose = true;
               break;
-          case 's':  // scheduler specification (argument expected)
+          case 's':  // scheduler algorithm
               schedspec = optarg;
               break;
-          case '?':  // unknown options or missing arguments
-              std::cerr << "Unknown option or missing argument!" << std::endl;
+          case '?':  // unknown or missing
+              std::cerr << "Unknown or missing argument!" << std::endl;
               display_help(); 
               break;
       }
@@ -630,9 +622,15 @@ int main(int argc, char *argv[]){
         } else{
           maxprio=4;
         }
-        if (quantum<0 || maxprio<0) { // check if valid quantum
+        //check if valid input
+        if (quantum<0) { // check if valid quantum
           cout << "no valid value of quantum=" <<quantum;
-          return 0;} 
+          return 0;
+        }; 
+        if (maxprio<0) { 
+          cout << "no valid value of maxprio=" <<maxprio;
+          return 0;
+        };
         scheduler = new PRIOScheduler(maxprio);
         break;
     }
@@ -649,9 +647,15 @@ int main(int argc, char *argv[]){
         } else{
           maxprio=4;
         }
-        if (quantum<0 || maxprio<0) { // check if valid quantum
+        //check if valid input
+        if (quantum<0) { 
           cout << "no valid value of quantum=" <<quantum;
-          return 0;} 
+          return 0;
+        };
+        if (maxprio<0) { 
+          cout << "no valid value of maxprio=" <<maxprio;
+          return 0;
+        }; 
         scheduler = new EPRIOScheduler(maxprio);
         break;
     }
