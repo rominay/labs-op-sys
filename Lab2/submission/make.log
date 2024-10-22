@@ -1,0 +1,2 @@
+rm -f sched *~
+g++ -g sched.cpp -o sched 

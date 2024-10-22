@@ -5,7 +5,6 @@
 #include <list>
 #include <queue>
 #include <unistd.h> // For getopt
-#include <cstdlib>  // For exit()
 #include <regex>
 #include <vector>
 
@@ -173,7 +172,8 @@ public:
     virtual Process* get_next_process() = 0;
     virtual void add_process(Process* p) = 0; 
     virtual string get_type() = 0;
-    void virtual handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) = 0;
+    void virtual handle_preemption(Process* readyProcess, 
+                                   Process* runningProcess, int currentTime){};
 };
 
 BaseScheduler *scheduler;
@@ -184,7 +184,6 @@ private:
     queue<Process*> runQueue; 
 
 public:
-    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
     string get_type() override {return "FCFS";}
     Process* get_next_process() override {
         if (runQueue.empty()) {
@@ -205,7 +204,6 @@ class LCFSScheduler : public BaseScheduler{
 	deque<Process *> runQueue;
 
 public:
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "LCFS";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -221,37 +219,37 @@ public:
 };
 
 class SRTFScheduler : public BaseScheduler{
-	vector <Process *> runQueue;
+  list <Process *> runQueue;
 public:
-    void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
-    string get_type() override {return "SRTF";}
-    Process *get_next_process() override {
-	    if (runQueue.empty()){
-			return NULL;
-		}
-		int shortestremainTime = runQueue[0]->get_remaining_time();
-        int shortestIndex = 0;
-        int runQSize = static_cast<int>(runQueue.size());
-        for(int i=1;i<runQSize;i++){
-        if ((runQueue[i]->get_remaining_time()) < shortestremainTime){
-            shortestremainTime=runQueue[i]->get_remaining_time();
-            shortestIndex = i;
+    string get_type() override { 
+        return "SRTF"; 
+    }
+
+    Process* get_next_process() override {
+        if (runQueue.empty()) {
+            return NULL;
         }
+
+        // get process with shortest remaining time
+        auto shortestProcess = runQueue.begin();
+        for (auto it = runQueue.begin(); it != runQueue.end(); ++it) {
+            if ((*it)->get_remaining_time() < (*shortestProcess)->get_remaining_time()) {
+                shortestProcess = it;
+            }
         }
-        Process* nextProcess = runQueue[shortestIndex];
-        runQueue.erase(runQueue.begin()+shortestIndex);;
+        Process* nextProcess = *shortestProcess;
+        // remove it from the list
+        runQueue.erase(shortestProcess);
         return nextProcess;
-        }
+    }
 
-    void add_process(Process *p) override {
+    void add_process(Process* p) override {
         runQueue.push_back(p);
-	}
+    }
 };
-
 class RoundRobinScheduler : public BaseScheduler{
 	queue<Process *> runQueue;
 public:
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
   string get_type() override {return "RR";}
 	Process *get_next_process() override {
 		if (runQueue.empty()){
@@ -287,9 +285,9 @@ public:
   }
   ~PRIOScheduler() {
     delete activeQ;
+    delete expiredQ;
   }
   
-  void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime){};
 	Process* get_next_process() override {
       for (size_t i=0; i<2;i++){
         Process* nextProcess;
@@ -335,7 +333,6 @@ public:
     }
 
     void handle_preemption(Process* readyProcess, Process* runningProcess, int currentTime) {
-        // if readyProcess process has a higher dynamic prio than current_running_process
         if (runningProcess != nullptr) { 
           bool condition_1 = readyProcess->dynamic_priority > runningProcess->dynamic_priority;
           bool condition_2 = !has_pending_event(runningProcess, currentTime);
@@ -536,7 +533,7 @@ void simulation(){
 
 // help message
 void display_help() {
-    std::cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
+    cout << "Usage: <program> [-v] [-s<schedspec>] inputfile randfile\n"
               << "Options:\n"
               << "  -v        Enable verbose output\n"
               << "  -s <schedspec> Specify the scheduling specification (requires argument)\n"
@@ -558,11 +555,11 @@ int main(int argc, char *argv[]){
           case 'v':  // verbose
               verbose = true;
               break;
-          case 's':  // scheduler specification (argument expected)
+          case 's':  // scheduler algorithm
               schedspec = optarg;
               break;
-          case '?':  // unknown options or missing arguments
-              std::cerr << "Unknown option or missing argument!" << std::endl;
+          case '?':  // unknown or missing
+              std::cerr << "Unknown or missing argument!" << std::endl;
               display_help(); 
               break;
       }
@@ -579,61 +576,93 @@ int main(int argc, char *argv[]){
   /*
   * Read the args
   */
-  if (schedspec == "F") {
-    scheduler = new FCFSScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-  if (schedspec == "L") {
-    scheduler = new LCFSScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-  if (schedspec == "S") {
-    scheduler = new SRTFScheduler();
-    quantum = 10000;
-    maxprio = 4; 
-  }
-
-  // Case 2: R<num> (e.g., R100)
-  regex r_regex("^R([0-9]+)$");
-  smatch r_match;
-  if (regex_match(schedspec, r_match, r_regex)) {
-      scheduler = new RoundRobinScheduler();
+  while(1){
+    if (schedspec == "F") {
+      scheduler = new FCFSScheduler();
+      quantum = 10000;
       maxprio = 4; 
-      string str_quantum = r_match[1];
-      quantum = stoi(str_quantum);
-  }
+      break;
+    }
+    if (schedspec == "L") {
+      scheduler = new LCFSScheduler();
+      quantum = 10000;
+      maxprio = 4; 
+      break;
+    }
+    if (schedspec == "S") {
+      scheduler = new SRTFScheduler();
+      quantum = 10000;
+      maxprio = 4; 
+      break;
+    }
 
-  // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
-  regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
-  smatch p_match;
-  if (regex_match(schedspec, p_match, p_regex)) {
-      string str_quantum = p_match[1];
-      quantum = stoi(str_quantum); // TO DO: check if quantum is required
-      if (p_match[2].length() > 0) {
-        string str_maxprios = p_match[2];
-        maxprio = stoi(str_maxprios);
-      } else{
-        maxprio=4;
-      }
-      scheduler = new PRIOScheduler(maxprio);
-  }
+    // Case 2: R<num> (e.g., R100)
+    regex r_regex("^R([0-9]+)$");
+    smatch r_match;
+    if (regex_match(schedspec, r_match, r_regex)) {
+        maxprio = 4; 
+        string str_quantum = r_match[1];
+        quantum = stoi(str_quantum);
+        if (quantum<0) { // check if valid quantum
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;} 
+        scheduler = new RoundRobinScheduler();
+        break;
+    }
 
-  // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
-  regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
-  smatch e_match;
-  if (regex_match(schedspec, e_match, e_regex)) {
-      string str_quantum = e_match[1];
-      quantum = stoi(str_quantum); 
-      if (e_match[2].length() > 0) {
-        string str_maxprios = e_match[2];
-        maxprio = stoi(str_maxprios);
-      } else{
-        maxprio=4;
-      }
-      scheduler = new EPRIOScheduler(maxprio);
-  }
+    // Case 3: P<num>[:<maxprio>] (e.g., P10:20 or P10)
+    regex p_regex("^P([0-9]+)(?::([0-9]+))?$");
+    smatch p_match;
+    if (regex_match(schedspec, p_match, p_regex)) {
+        string str_quantum = p_match[1];
+        quantum = stoi(str_quantum); // TO DO: check if quantum is required
+        if (p_match[2].length() > 0) {
+          string str_maxprios = p_match[2];
+          maxprio = stoi(str_maxprios);
+        } else{
+          maxprio=4;
+        }
+        //check if valid input
+        if (quantum<0) { // check if valid quantum
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;
+        }; 
+        if (maxprio<0) { 
+          cout << "no valid value of maxprio=" <<maxprio;
+          return 0;
+        };
+        scheduler = new PRIOScheduler(maxprio);
+        break;
+    }
+
+    // Case 4: E<num>[:<maxprios>] (e.g., E5:10 or E5)
+    regex e_regex("^E([0-9]+)(?::([0-9]+))?$");
+    smatch e_match;
+    if (regex_match(schedspec, e_match, e_regex)) {
+        string str_quantum = e_match[1];
+        quantum = stoi(str_quantum); 
+        if (e_match[2].length() > 0) {
+          string str_maxprios = e_match[2];
+          maxprio = stoi(str_maxprios);
+        } else{
+          maxprio=4;
+        }
+        //check if valid input
+        if (quantum<0) { 
+          cout << "no valid value of quantum=" <<quantum;
+          return 0;
+        };
+        if (maxprio<0) { 
+          cout << "no valid value of maxprio=" <<maxprio;
+          return 0;
+        }; 
+        scheduler = new EPRIOScheduler(maxprio);
+        break;
+    }
+
+    cout << "Invalid scheduling specification format: " << schedspec << endl;
+    return 0;
+  } 
   
   /*
   * Open input file
